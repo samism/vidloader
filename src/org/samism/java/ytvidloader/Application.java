@@ -24,9 +24,7 @@ public class Application {
 					new DownloaderGUI().setVisible(true);
 				}
 			});
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e){
+		} catch (InterruptedException | InvocationTargetException e) {
 			e.printStackTrace();
 		}
 	}

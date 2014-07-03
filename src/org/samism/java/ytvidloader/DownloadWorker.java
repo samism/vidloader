@@ -37,11 +37,9 @@ public class DownloadWorker extends SwingWorker<Integer, Void> {
 
 		try {
 			code = get(24, TimeUnit.HOURS);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | TimeoutException e) {
 			e.printStackTrace();
 		} catch (ExecutionException e) {
-			e.printStackTrace();
-		} catch (TimeoutException e) {
 			e.printStackTrace();
 		}
 

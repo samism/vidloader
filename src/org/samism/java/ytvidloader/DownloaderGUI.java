@@ -163,9 +163,7 @@ public class DownloaderGUI extends JFrame {
 			public void mouseEntered(final MouseEvent e) {
 				try {
 					clipboardContents = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
-				} catch (UnsupportedFlavorException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
+				} catch (UnsupportedFlavorException | IOException e1) {
 					e1.printStackTrace();
 				}
 
