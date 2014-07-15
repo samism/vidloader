@@ -31,11 +31,11 @@ public class DownloaderGUI extends JFrame {
 	private final ArrayList<JProgressBar> bars = new ArrayList<>();
 	private final ArrayList<DownloadWorker> workers = new ArrayList<>();
 
-	//private String custom_downloads_dir = System.getProperty("user.dir") + "/Downloads";
-	String clipboardContents = "";
-	//private String downloads_dir = System.getProperty("user.home") + "/Downloads";
-
-	//private File pathFile = new File(path);
+	String clipboardContent = "";
+	
+	File defaultDownloadsDir = new File(System.getProperty("user.home") + "/Downloads"); //OS created downloads directory
+	File newDownloadsDir = new File(System.getProperty("user.dir") + "/Downloads"); //alternative to above if not found
+	File workingDir = defaultDownloadsDir; //by default is the OS downloads dir. may be altered in the constructor
 
 	private final JFrame me = this;
 	private final JTabbedPane tabs = new JTabbedPane();
@@ -57,13 +57,11 @@ public class DownloaderGUI extends JFrame {
 	}
 
 	public DownloaderGUI() {
-		File defaultDownloadsDir = new File(System.getProperty("user.home") + "/Downloads"); //OS created downloads directory
-		File newDownloadsDir = new File(System.getProperty("user.dir") + "/Downloads"); //alternative to above if not found
-
 		//check if OS download dir exists. if it doesn't, create a custom one in the current directory
 		if (!defaultDownloadsDir.exists()) {
 			if (newDownloadsDir.mkdir()) {
 				log.info("OS downloads folder doesn't exist, a local one was created");
+				workingDir = newDownloadsDir;
 			} else {
 				log.info("downloads folder doesn't exist - creation failed.");
 			}
@@ -93,14 +91,14 @@ public class DownloaderGUI extends JFrame {
 
 	private void buildGUI() {
 		browseButton.setToolTipText("Select where to save your downloads");
-		saveToField.setToolTipText("<html>Click to open: <br>" + path + "</html>");
+		saveToField.setToolTipText("Click to open this folder");
 		addTabButton.setToolTipText("Add a video download");
 		removeTabButton.setToolTipText("Remove a video download");
 
 		dialogUrlField.setPreferredSize(new Dimension(300, 25));
 		saveToField.setPreferredSize(new Dimension(300, 25));
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		chooser.setCurrentDirectory(pathFile);
+		chooser.setCurrentDirectory(workingDir);
 
 		tabs.setPreferredSize(new Dimension(720, 450));
 		tabs.setTabPlacement(JTabbedPane.LEFT);
@@ -159,15 +157,15 @@ public class DownloaderGUI extends JFrame {
 
 		dialogUrlField.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(final MouseEvent e) {
-				if (!clipboardContents.isEmpty() && clipboardContents.startsWith("http://www.youtube.com/watch?v=")) {
-					dialogUrlField.setText(clipboardContents);
+				if (!clipboardContent.isEmpty() && clipboardContent.startsWith("https://www.youtube.com/watch?v=")) {
+					dialogUrlField.setText(clipboardContent);
 				}
-				log.debug("Clipboard: " + clipboardContents);
+				log.debug("Clipboard: " + clipboardContent);
 			}
 
 			public void mouseEntered(final MouseEvent e) {
 				try {
-					clipboardContents = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
+					clipboardContent = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
 				} catch (UnsupportedFlavorException | IOException e1) {
 					e1.printStackTrace();
 				}
@@ -180,8 +178,9 @@ public class DownloaderGUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				int value = chooser.showDialog(me, "Save here");
 				if (value == JFileChooser.APPROVE_OPTION) {
-					path = chooser.getSelectedFile().getAbsolutePath();
-					saveToField.setText(path);
+					workingDir = chooser.getSelectedFile();
+					saveToField.setText(workingDir.getPath());
+					log.info("workingDir set to: " + workingDir.getPath());
 				}
 			}
 		});
@@ -190,10 +189,10 @@ public class DownloaderGUI extends JFrame {
 		dialogOkButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String link = dialogUrlField.getText();
-				if (link.startsWith("http://www.youtube.com/watch?v=")) {
+				if (link.startsWith("https://www.youtube.com/watch?v=")) {
 					dialog.setVisible(false);
 
-					VideoDownloader downer = new VideoDownloader(link, path, (DownloaderGUI) me);
+					VideoDownloader downer = new VideoDownloader(link, workingDir.getAbsolutePath(), (DownloaderGUI) me);
 					downloaders.add(downer);
 					createTab("Video " + (tabs.getTabCount() + 1),
 							downer.getVideoUrl(),
