@@ -1,6 +1,8 @@
 <h1>vidloader</h1>
 
-<p>Started a while back, is currently outdated. Currently working on exporting all the I/O and data parsing tasks using VGet
+<p>Started a while back, is currently outdated.</p>
+
+<p>Working on exporting all the I/O and data parsing tasks using VGet
 because YouTube is getting very intense with their obfuscation efforts concerning video downloads. VGet is one of the few
 decent Java libraries that has figured out how to download their videos.</p>
 
