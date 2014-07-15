@@ -67,6 +67,8 @@ public class DownloaderGUI extends JFrame {
 			}
 		}
 
+		saveToField.setText(workingDir.getAbsolutePath());
+
 		//cannot be assigned at declaration
 		pauseButton = new JButton(PAUSE_IMAGE);
 		playButton = new JButton(PLAY_IMAGE);
@@ -91,7 +93,7 @@ public class DownloaderGUI extends JFrame {
 
 	private void buildGUI() {
 		browseButton.setToolTipText("Select where to save your downloads");
-		saveToField.setToolTipText("Click to open this folder");
+		saveToField.setToolTipText("Click to open");
 		addTabButton.setToolTipText("Add a video download");
 		removeTabButton.setToolTipText("Remove a video download");
 
@@ -192,18 +194,18 @@ public class DownloaderGUI extends JFrame {
 				if (link.startsWith("https://www.youtube.com/watch?v=")) {
 					dialog.setVisible(false);
 
-					VideoDownloader downer = new VideoDownloader(link, workingDir.getAbsolutePath(), (DownloaderGUI) me);
-					downloaders.add(downer);
-					createTab("Video " + (tabs.getTabCount() + 1),
-							downer.getVideoUrl(),
-							downer.getVideoTitle(),
-							downer.getVideoUploader(),
-							downer.getUploadDate(),
-							downer.getDescription());
+//					VideoDownloader downer = new VideoDownloader(link, workingDir.getAbsolutePath(), (DownloaderGUI) me);
+//					downloaders.add(downer);
+					createTab("Video " + (tabs.getTabCount() + 1), "", "", "", "", "");
+							//downer.getVideoUrl(),
+							//downer.getVideoTitle(),
+							//downer.getVideoUploader(),
+							//downer.getUploadDate(),
+							//downer.getDescription());
 
-					DownloadWorker worker = new DownloadWorker(downer);
-					workers.add(worker);
-					worker.execute();
+					//DownloadWorker worker = new DownloadWorker(downer);
+					//workers.add(worker);
+					//worker.execute();
 				}
 			}
 		});
@@ -293,7 +295,6 @@ public class DownloaderGUI extends JFrame {
 			me.dispose();
 			log.info("program closing");
 			System.exit(0);
-
 		}
 	}
 
@@ -302,16 +303,16 @@ public class DownloaderGUI extends JFrame {
 	                       String videoUploader, String uploadDate, String description) {
 		URL imgUrl = null;
 
-		try {
-			imgUrl = new URL(downloaders.get(tabs.getSelectedIndex() + 1).getVideoImgUrl());
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		}
+//		try {
+//			imgUrl = new URL(downloaders.get(tabs.getSelectedIndex() + 1).getVideoImgUrl());
+//		} catch (MalformedURLException e) {
+//			e.printStackTrace();
+//		}
 
 		JPanel newPanel = new JPanel();
 		JLabel titleLabel = new JLabel("Title: " + videoTitle);
 		JLabel uploaderLabel = new JLabel("Uploaded by: " + videoUploader + " on " + uploadDate);
-		JLabel prevImg = new JLabel(new ImageIcon(imgUrl));
+		JLabel prevImg = new JLabel(new ImageIcon("http://t3.gstatic.com/images?q=tbn:ANd9GcSbNO8DD1Q3hePzh2gpX0syP0md8D6qGEoINhE0vnQY5sGJdGxpSg"));
 		JLabel descriptionLabel = new JLabel("<html>Description: " + description + "</html>");
 
 		JTextField urlLabel = new JTextField("URL: " + videoUrl);
