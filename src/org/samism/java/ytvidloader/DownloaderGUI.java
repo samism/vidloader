@@ -23,18 +23,19 @@ import java.util.ArrayList;
 
 public class DownloaderGUI extends JFrame {
 
-	private static final Logger logger = LoggerFactory.getLogger(DownloaderGUI.class.getSimpleName());
+	private static final Logger log = LoggerFactory.getLogger(DownloaderGUI.class.getSimpleName());
 
 	private static final ImageIcon ADD_IMAGE, REMOVE_IMAGE, WINDOW_LOGO, PAUSE_IMAGE, PLAY_IMAGE;
 
-	private final ArrayList<VideoDownloader> downloaders = new ArrayList<VideoDownloader>();
-	private final ArrayList<JProgressBar> bars = new ArrayList<JProgressBar>();
-	private final ArrayList<DownloadWorker> workers = new ArrayList<DownloadWorker>();
+	private final ArrayList<VideoDownloader> downloaders = new ArrayList<>();
+	private final ArrayList<JProgressBar> bars = new ArrayList<>();
+	private final ArrayList<DownloadWorker> workers = new ArrayList<>();
 
-	private String path = System.getProperty("user.dir") + "\\downloads",
-			clipboardContents = null;
+	//private String custom_downloads_dir = System.getProperty("user.dir") + "/Downloads";
+	String clipboardContents = "";
+	//private String downloads_dir = System.getProperty("user.home") + "/Downloads";
 
-	private File pathFile = new File(path);
+	//private File pathFile = new File(path);
 
 	private final JFrame me = this;
 	private final JTabbedPane tabs = new JTabbedPane();
@@ -42,7 +43,7 @@ public class DownloaderGUI extends JFrame {
 			browseButton = new JButton("browse"),
 			dialogOkButton = new JButton("OK"),
 			dialogCancelButton = new JButton("Cancel");
-	private final JLabel saveToField = new JLabel(path);
+	private final JLabel saveToField = new JLabel("Loading downloads directory...");
 	private final JTextField dialogUrlField = new JTextField();
 	private final JFileChooser chooser = new JFileChooser();
 	private final JDialog dialog = new JDialog(this, "Add Download");
@@ -56,11 +57,15 @@ public class DownloaderGUI extends JFrame {
 	}
 
 	public DownloaderGUI() {
-		if (!pathFile.exists()) {
-			if (pathFile.mkdir()) {
-				logger.info("downloads folder doesn't exist - created.");
+		File defaultDownloadsDir = new File(System.getProperty("user.home") + "/Downloads"); //OS created downloads directory
+		File newDownloadsDir = new File(System.getProperty("user.dir") + "/Downloads"); //alternative to above if not found
+
+		//check if OS download dir exists. if it doesn't, create a custom one in the current directory
+		if (!defaultDownloadsDir.exists()) {
+			if (newDownloadsDir.mkdir()) {
+				log.info("OS downloads folder doesn't exist, a local one was created");
 			} else {
-				logger.info("downloads folder doesn't exist - creation failed.");
+				log.info("downloads folder doesn't exist - creation failed.");
 			}
 		}
 
@@ -154,10 +159,10 @@ public class DownloaderGUI extends JFrame {
 
 		dialogUrlField.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(final MouseEvent e) {
-				if (clipboardContents != null && clipboardContents.startsWith("http://www.youtube.com/watch?v=")) {
+				if (!clipboardContents.isEmpty() && clipboardContents.startsWith("http://www.youtube.com/watch?v=")) {
 					dialogUrlField.setText(clipboardContents);
 				}
-				logger.debug("Clipboard: " + clipboardContents);
+				log.debug("Clipboard: " + clipboardContents);
 			}
 
 			public void mouseEntered(final MouseEvent e) {
@@ -167,9 +172,7 @@ public class DownloaderGUI extends JFrame {
 					e1.printStackTrace();
 				}
 
-				if (clipboardContents.startsWith("http://www.youtube.com/watch?v=")) {
-					dialogUrlField.setToolTipText("<html>Click to paste:<br><br>" + clipboardContents + "</html>");
-				}
+				dialogUrlField.setToolTipText("Click to paste URL");
 			}
 		});
 
@@ -247,10 +250,10 @@ public class DownloaderGUI extends JFrame {
 			if (choice == JOptionPane.YES_OPTION && downloaders.size() > 0) {
 				tabs.removeTabAt(tabs.getSelectedIndex());
 				if (new File(downloaders.get(tabs.getSelectedIndex() + 1).getFileName()).delete()) {
-					logger.info("download " + (tabs.getSelectedIndex() + 1)
+					log.info("download " + (tabs.getSelectedIndex() + 1)
 							+ " terminated. File deleted.");
 				} else {
-					logger.info("download " + (tabs.getSelectedIndex() + 1)
+					log.info("download " + (tabs.getSelectedIndex() + 1)
 							+ " terminated. File deletion failed.");
 				}
 				workers.get(tabs.getSelectedIndex() + 1).cancel(true); //stops the SwingWorker
@@ -276,20 +279,20 @@ public class DownloaderGUI extends JFrame {
 				int i = tabs.getSelectedIndex();
 
 				tabs.removeTabAt(i);
-				logger.info("trying to delete: "
+				log.info("trying to delete: "
 						+ downloaders.get(tabs.getSelectedIndex() + 1).getVideoTitle());
 				if (new File(downloaders.get(tabs.getSelectedIndex() + 1).getFileName()).delete()) {
-					logger.info("download " + (tabs.getSelectedIndex() + 1)
+					log.info("download " + (tabs.getSelectedIndex() + 1)
 							+ " terminated. File deleted.");
 				} else {
-					logger.info("download " + (tabs.getSelectedIndex() + 1)
+					log.info("download " + (tabs.getSelectedIndex() + 1)
 							+ " terminated. File deletion failed.");
 				}
-				logger.info("removed tab " + i + " successfully");
+				log.info("removed tab " + i + " successfully");
 			}
-			logger.info("disposing of window");
+			log.info("disposing of window");
 			me.dispose();
-			logger.info("program closing");
+			log.info("program closing");
 			System.exit(0);
 
 		}
@@ -346,7 +349,7 @@ public class DownloaderGUI extends JFrame {
 		final Object[] options = new Object[]{"I'm sure", "No! Keep 'em loading!"};
 
 		public void windowClosing(WindowEvent e) {
-			logger.info("Trying to exit on: " + tabs.getTabCount() + " tabs");
+			log.info("Trying to exit on: " + tabs.getTabCount() + " tabs");
 
 			if (tabs.getTabCount() > 0) {
 				int user = JOptionPane.showOptionDialog(me,
@@ -359,15 +362,15 @@ public class DownloaderGUI extends JFrame {
 						options[1]);
 				if (user == JOptionPane.YES_OPTION) {
 					destroyAllTabs();
-					logger.info("disposing of window");
+					log.info("disposing of window");
 					me.dispose();
-					logger.info("program closing");
+					log.info("program closing");
 					System.exit(0);
 				}
 			} else {
-				logger.info("disposing of window");
+				log.info("disposing of window");
 				me.dispose();
-				logger.info("program closing");
+				log.info("program closing");
 				System.exit(0);
 			}
 		}
