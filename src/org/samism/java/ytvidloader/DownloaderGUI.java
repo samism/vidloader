@@ -23,11 +23,11 @@ import java.util.ArrayList;
 
 public class DownloaderGUI extends JFrame {
 
-	private static final Logger log = LoggerFactory.getLogger(DownloaderGUI.class.getSimpleName());
+	private static final Logger log = LoggerFactory.getLogger(DownloaderGUI.class);
 
 	private static final ImageIcon ADD_IMAGE, REMOVE_IMAGE, WINDOW_LOGO, PAUSE_IMAGE, PLAY_IMAGE;
 
-	private final ArrayList<VideoDownloader> downloaders = new ArrayList<>();
+	private final ArrayList<VideoInfo> downloaders = new ArrayList<>();
 	private final ArrayList<JProgressBar> bars = new ArrayList<>();
 	private final ArrayList<DownloadWorker> workers = new ArrayList<>();
 
@@ -192,20 +192,21 @@ public class DownloaderGUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				String link = dialogUrlField.getText();
 				if (link.startsWith("https://www.youtube.com/watch?v=")) {
+					String id = link.substring(link.indexOf("="), link.length());
 					dialog.setVisible(false);
 
-//					VideoDownloader downer = new VideoDownloader(link, workingDir.getAbsolutePath(), (DownloaderGUI) me);
-//					downloaders.add(downer);
-					createTab("Video " + (tabs.getTabCount() + 1), "", "", "", "", "");
-							//downer.getVideoUrl(),
-							//downer.getVideoTitle(),
-							//downer.getVideoUploader(),
-							//downer.getUploadDate(),
-							//downer.getDescription());
+					VideoInfo downer = new VideoInfo(id, (DownloaderGUI) me);
+					downloaders.add(downer);
+					createTab("Video " + (tabs.getTabCount() + 1),
+							downer.getUrl(),
+							downer.getVideoTitle(),
+							downer.getVideoUploader(),
+							downer.getUploadDate(),
+							downer.getDescription());
 
-					//DownloadWorker worker = new DownloadWorker(downer);
-					//workers.add(worker);
-					//worker.execute();
+					DownloadWorker worker = new DownloadWorker(downer);
+					workers.add(worker);
+					worker.execute();
 				}
 			}
 		});
@@ -250,7 +251,7 @@ public class DownloaderGUI extends JFrame {
 					JOptionPane.QUESTION_MESSAGE);
 			if (choice == JOptionPane.YES_OPTION && downloaders.size() > 0) {
 				tabs.removeTabAt(tabs.getSelectedIndex());
-				if (new File(downloaders.get(tabs.getSelectedIndex() + 1).getFileName()).delete()) {
+				if (new File(downloaders.get(tabs.getSelectedIndex() + 1).getVideoTitle() + ".mp4").delete()) {
 					log.info("download " + (tabs.getSelectedIndex() + 1)
 							+ " terminated. File deleted.");
 				} else {
@@ -282,7 +283,7 @@ public class DownloaderGUI extends JFrame {
 				tabs.removeTabAt(i);
 				log.info("trying to delete: "
 						+ downloaders.get(tabs.getSelectedIndex() + 1).getVideoTitle());
-				if (new File(downloaders.get(tabs.getSelectedIndex() + 1).getFileName()).delete()) {
+				if (new File(downloaders.get(tabs.getSelectedIndex() + 1).getVideoTitle() + ".mp4").delete()) {
 					log.info("download " + (tabs.getSelectedIndex() + 1)
 							+ " terminated. File deleted.");
 				} else {

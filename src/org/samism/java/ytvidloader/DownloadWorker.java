@@ -17,17 +17,38 @@ import java.util.concurrent.TimeoutException;
 
 public class DownloadWorker extends SwingWorker<Integer, Void> {
 
-	private static final Logger logger = LoggerFactory.getLogger(DownloadWorker.class.getSimpleName());
+	private static final Logger logger = LoggerFactory.getLogger(DownloadWorker.class);
 
-	private final VideoDownloader downer;
+	private final VideoInfo downer;
 
-	DownloadWorker(VideoDownloader downer) {
+	DownloadWorker(VideoInfo downer) {
 		this.downer = downer;
 	}
 
 	@Override
 	protected Integer doInBackground() {
-		return downer.download();
+//		URL url;
+//		ReadableByteChannel rbc;
+//		FileOutputStream fos;
+//
+//		try {
+//			url = new URL(/* url*/);
+//			HttpURLConnection huc = (HttpURLConnection) url.openConnection();
+//
+//			long len = Long.parseLong(huc.getHeaderField("Content-Length"));
+//
+//			if (len > 0) {
+//				rbc = Channels.newChannel(url.openStream());
+//				fos = new FileOutputStream(fileName);
+//				fos.getChannel().transferFrom(rbc, 0, 1 << 24);
+//				fos.flush();
+//				fos.close();
+//          }
+//		} catch (IOException e) {
+//			returnCode = -1;
+//			e.printStackTrace();
+//		}
+		return 0;
 	}
 
 	@Override
