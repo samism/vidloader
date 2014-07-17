@@ -37,6 +37,15 @@ public class DownloaderGUI extends JFrame {
 	File newDownloadsDir = new File(System.getProperty("user.dir") + "/Downloads"); //alternative to above if not found
 	File workingDir = defaultDownloadsDir; //by default is the OS downloads dir. may be altered in the constructor
 
+	enum Quality {
+		//highest grabs the largest integer itag
+		//default is mp4
+		//lowest, etc
+		HIGHEST, DEFAULT, LOWEST
+	}
+
+	private Quality qual = Quality.DEFAULT;
+
 	private final JFrame me = this;
 	private final JTabbedPane tabs = new JTabbedPane();
 	private final JButton addTabButton, removeTabButton, pauseButton, playButton,
@@ -192,10 +201,10 @@ public class DownloaderGUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				String link = dialogUrlField.getText();
 				if (link.startsWith("https://www.youtube.com/watch?v=")) {
-					String id = link.substring(link.indexOf("="), link.length());
+					String id = link.substring(link.indexOf("=") + 1);
 					dialog.setVisible(false);
 
-					VideoInfo downer = new VideoInfo(id, (DownloaderGUI) me);
+					VideoInfo downer = new VideoInfo(id, qual/*, (DownloaderGUI) me*/);
 					downloaders.add(downer);
 					createTab("Video " + (tabs.getTabCount() + 1),
 							downer.getUrl(),
@@ -305,14 +314,14 @@ public class DownloaderGUI extends JFrame {
 		URL imgUrl = null;
 
 //		try {
-//			imgUrl = new URL(downloaders.get(tabs.getSelectedIndex() + 1).getVideoImgUrl());
+//			imgUrl = new URL(downloaders.get(tabs.getSelectedIndex() + 1).getThumbUrl());
 //		} catch (MalformedURLException e) {
 //			e.printStackTrace();
 //		}
 
 		JPanel newPanel = new JPanel();
 		JLabel titleLabel = new JLabel("Title: " + videoTitle);
-		JLabel uploaderLabel = new JLabel("Uploaded by: " + videoUploader + " on " + uploadDate);
+		JLabel uploaderLabel = new JLabel("Uploaded by: " + videoUploader/* + " on " + uploadDate*/);
 		JLabel prevImg = new JLabel(new ImageIcon("http://t3.gstatic.com/images?q=tbn:ANd9GcSbNO8DD1Q3hePzh2gpX0syP0md8D6qGEoINhE0vnQY5sGJdGxpSg"));
 		JLabel descriptionLabel = new JLabel("<html>Description: " + description + "</html>");
 

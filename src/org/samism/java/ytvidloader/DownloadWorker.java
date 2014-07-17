@@ -17,7 +17,7 @@ import java.util.concurrent.TimeoutException;
 
 public class DownloadWorker extends SwingWorker<Integer, Void> {
 
-	private static final Logger logger = LoggerFactory.getLogger(DownloadWorker.class);
+	private static final Logger log = LoggerFactory.getLogger(DownloadWorker.class);
 
 	private final VideoInfo downer;
 
@@ -64,14 +64,14 @@ public class DownloadWorker extends SwingWorker<Integer, Void> {
 			e.printStackTrace();
 		}
 
-		logger.info("Video download for: \"" + downer.getVideoTitle() + "\" done with code: " + code);
+		log.info("Video download for: \"" + downer.getVideoTitle() + "\" done with code: " + code);
 
 		switch(code){
-			case -2: logger.debug("Something wrong w/ concurrency, or dl took more than 24h");
+			case -2: log.debug("Something wrong w/ concurrency, or dl took more than 24h");
 				break;
-			case -1: logger.debug("Could not extract the video file/data");
+			case -1: log.debug("Could not extract the video file/data");
 				break;
-			case 0: logger.debug("Download went smoothly, code-wise.");
+			case 0: log.debug("Download went smoothly, code-wise.");
 				break;
 		}
 	}
