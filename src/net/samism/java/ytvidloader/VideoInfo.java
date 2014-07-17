@@ -7,7 +7,10 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,11 +25,9 @@ import java.util.Arrays;
  */
 
 public class VideoInfo {
-	private String id, title, author, videoInfo, videoPage, url, thumbUrl, description;
-
-	//private final DownloaderGUI instance;
-
 	private static final Logger log = LoggerFactory.getLogger(VideoInfo.class);
+
+	private String id, title, author, videoInfo, videoPage, url, thumbUrl, description;
 
 	enum Property {
 		TITLE, AUTHOR, THUMBURL, DESCRIPTION, URL
@@ -41,7 +42,6 @@ public class VideoInfo {
 		this.thumbUrl = obtain(Property.THUMBURL);
 		this.description = obtain(Property.DESCRIPTION);
 		this.url = obtain(Property.URL, qual);
-		//this.instance = instance;
 	}
 
 	/**
@@ -69,21 +69,7 @@ public class VideoInfo {
 			byte[] buffer = new byte[1024];
 			for (int bytesRead; (bytesRead = is.read(buffer)) != -1;) output.write(buffer, 0, bytesRead);
 		} catch (IOException e) {
-//			Object[] option = new Object[]{"OK"};
-//			JTabbedPane tabs = instance.getTabs();
-//			int msg = JOptionPane.showOptionDialog(instance,
-//					"Couldn't start download.\n" +
-//							"Check the URL, and/or your internet connection.",
-//					"Error",
-//					JOptionPane.OK_OPTION,
-//					JOptionPane.ERROR_MESSAGE,
-//					null,
-//					option,
-//					option[0]);
-//			if ((msg == JOptionPane.CLOSED_OPTION || msg == JOptionPane.OK_OPTION)
-//					&& tabs.getTabCount() > 0) {
-//				tabs.removeTabAt(tabs.getTabCount());
-//			}
+			log.error("Can't download anything, check your internet connection");
 		}
 
 		//don't URLdecode video page. only urldecode the info page
@@ -113,8 +99,6 @@ public class VideoInfo {
 
 		} while (!uno.equals(dos));
 
-		//uno = uno.replace("\\u0026", "&");
-		//System.out.println(uno.contains("\\u0026"));
 		return uno; //can return either one at this point
 	}
 
@@ -132,12 +116,12 @@ public class VideoInfo {
 			case TITLE:
 				int s1 = videoInfo.indexOf("&title=") + "&title=".length();
 				int s2 = videoInfo.indexOf("&", s1 + 5); //chances are a legit & in the title is 5+ chars down in the
-															//title
+														 //title
 				return videoInfo.substring(s1, s2);
 			case AUTHOR:
 				int _s1 = videoInfo.indexOf("&author=") + "&author=".length();
 				int _s2 = videoInfo.indexOf("&", _s1 + 5); //chances are a legit & in the title is 5+ chars
-														      //down in the channel name, as well
+														   //down in the channel name, as well
 				return videoInfo.substring(_s1, _s2);
 			case THUMBURL:
 				int __s1 = videoInfo.indexOf("&thumbnail_url=") + "&thumbnail_url=".length();
@@ -151,15 +135,61 @@ public class VideoInfo {
 				return videoPage.substring(___s1, ___s2);
 			case URL:
 				//everything should already be completely url decoded by now
-//				int startIndex = videoInfo.indexOf("url_encoded_fmt_stream_map=");
-//				int endIndex = videoInfo.lastIndexOf("&fallback_host=");
-//
-//				String sub = videoInfo.substring(startIndex, endIndex);
-//				String[] urls = sub.split(",url=");
-//				Arrays.toString(urls);
+				int startIndex = videoInfo.indexOf("url_encoded_fmt_stream_map=") +
+						"url_encoded_fmt_stream_map=".length();
+
+				String sub = videoInfo.substring(startIndex);
+
+				log.info("original: " + sub);
+
+				String delim = sub.substring(0, sub.indexOf('=', 1) + 1); //get the property that seperates the URLs
+																	  //the delim is the first char up to where the
+																	  //first '=' appears.
+				String[] urls = sub.split("(?=" + delim + ")"); //split according to the delim, but keep it as prefix
+				log.info("delimeter: " + delim);
+				printLinks(urls);
+
+				for(int i = 0; i < urls.length; i++){
+					//step 1. move the stuff before the start of the url to the end of it, append &title
+					log.info("url before: " + urls[i]);
+					String prefix = "";
+					if(!urls[i].startsWith("url=")) { //sometimes there are no prefixed stuff. url is the 1st thing
+						prefix = urls[i].substring(0, urls[i].indexOf("&url="));
+					}
+					log.info("prefixed properties: " + prefix);
+					urls[i] = urls[i].substring(prefix.length()); //discard prefixed properties
+					urls[i] = urls[i].substring(urls[i].indexOf("&url=") + "&url=".length()); //remove "&url="
+					urls[i] += prefix; //add them back to the end
+					if(urls[i].charAt(urls[i].length()) == ',')
+						urls[i] = urls[i].substring(0, urls[i].length()-1); //get rid of trailing comma
+					log.info("after: " + urls[i]);
+
+					try {
+						urls[i] += "&title=" + URLEncoder.encode(title, "UTF-8"); //make sure title of video is url safe
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+
+					log.info("After title: " + urls[i]);
+
+					//step 2. remove extraneous itag (causes the entire thing to break)
+					Pattern p = Pattern.compile("&itag=\\d{1,3}"); //itag code usually 2-3 integers
+					Matcher m = p.matcher(urls[i]);
+					if(m.find()){ //only expecting to find 2 matches
+						urls[i] = urls[i].replaceFirst(m.group(), "");
+					}
+
+					log.info("After itag: " + urls[i]);
+					//printLinks(urls);
+				}
 			default:
 				return "error";
 		}
+	}
+
+	private void printLinks(String[] u){
+		for(String _u : u)
+			log.info("url: " + _u);
 	}
 
 	// getter methods

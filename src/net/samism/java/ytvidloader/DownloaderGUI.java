@@ -22,7 +22,6 @@ import java.util.ArrayList;
  */
 
 public class DownloaderGUI extends JFrame {
-
 	private static final Logger log = LoggerFactory.getLogger(DownloaderGUI.class);
 
 	private static final ImageIcon ADD_IMAGE, REMOVE_IMAGE, WINDOW_LOGO;
