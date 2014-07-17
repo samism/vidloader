@@ -10,6 +10,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -200,19 +201,18 @@ public class DownloaderGUI extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				String link = dialogUrlField.getText();
 				if (link.startsWith("https://www.youtube.com/watch?v=")) {
-					String id = link.substring(link.indexOf("=") + 1);
 					dialog.setVisible(false);
 
-					VideoInfo downer = new VideoInfo(id, qual/*, (DownloaderGUI) me*/);
-					downloaders.add(downer);
+					VideoInfo info = new VideoInfo(link, qual/*, (DownloaderGUI) me*/);
+					downloaders.add(info);
 					createTab("Video " + (tabs.getTabCount() + 1),
-							downer.getUrl(),
-							downer.getVideoTitle(),
-							downer.getVideoUploader(),
-							downer.getUploadDate(),
-							downer.getDescription());
+							info.getUrl(),
+							info.getVideoTitle(),
+							info.getVideoUploader(),
+							info.getDescription(),
+							info.getThumbUrl());
 
-					DownloadWorker worker = new DownloadWorker(downer);
+					DownloadWorker worker = new DownloadWorker(info);
 					workers.add(worker);
 					worker.execute();
 				}
@@ -309,7 +309,7 @@ public class DownloaderGUI extends JFrame {
 
 	//incorporate getter/setter use of other class to get this methods info
 	private void createTab(String tabTitle, String videoUrl, String videoTitle,
-	                       String videoUploader, String uploadDate, String description) {
+	                       String videoUploader, String description, String thumbUrl) {
 		URL imgUrl = null;
 
 //		try {
@@ -321,8 +321,16 @@ public class DownloaderGUI extends JFrame {
 		JPanel newPanel = new JPanel();
 		JLabel titleLabel = new JLabel("Title: " + videoTitle);
 		JLabel uploaderLabel = new JLabel("Uploaded by: " + videoUploader/* + " on " + uploadDate*/);
-		JLabel prevImg = new JLabel(new ImageIcon("http://t3.gstatic.com/images?q=tbn:ANd9GcSbNO8DD1Q3hePzh2gpX0syP0md8D6qGEoINhE0vnQY5sGJdGxpSg"));
 		JLabel descriptionLabel = new JLabel("<html>Description: " + description + "</html>");
+		JScrollPane scroller = new JScrollPane(descriptionLabel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JLabel prevImg = null;
+		try {
+			prevImg = new JLabel(new ImageIcon(new URL(thumbUrl)));
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			log.info("unable to grab thumbnail image.");
+		}
+
 
 		JTextField urlLabel = new JTextField("URL: " + videoUrl);
 
@@ -341,7 +349,7 @@ public class DownloaderGUI extends JFrame {
 		newPanel.add(new JSeparator());
 		newPanel.add(titleLabel);
 		newPanel.add(uploaderLabel);
-		newPanel.add(descriptionLabel);
+		newPanel.add(scroller);
 		newPanel.add(urlLabel);
 		newPanel.add(new JSeparator());
 		newPanel.add(bars.get(tabs.getTabCount()));

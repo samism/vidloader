@@ -22,23 +22,23 @@ import java.util.Arrays;
  */
 
 public class VideoInfo {
-	private String id, title, author, rawVideoInfo, url, thumbUrl, uploadDate, description;
+	private String id, title, author, videoInfo, videoPage, url, thumbUrl, description;
 
 	//private final DownloaderGUI instance;
 
 	private static final Logger log = LoggerFactory.getLogger(VideoInfo.class);
 
 	enum Property {
-		TITLE, AUTHOR, THUMBURL, UPLOAD_DATE, DESCRIPTION, URL
+		TITLE, AUTHOR, THUMBURL, DESCRIPTION, URL
 	}
 
-	public VideoInfo(String id, DownloaderGUI.Quality qual) {
-		this.id = id;
-		this.rawVideoInfo = getVideoInfo(id);
+	public VideoInfo(String link, DownloaderGUI.Quality qual) {
+		this.id = link.substring(link.indexOf("=") + 1);
+		this.videoInfo = getVideoInfo(id, "https://www.youtube.com/get_video_info?video_id=");
+		this.videoPage = getVideoInfo(id, "https://www.youtube.com/watch?v=");
 		this.title = obtain(Property.TITLE);
 		this.author = obtain(Property.AUTHOR);
 		this.thumbUrl = obtain(Property.THUMBURL);
-		this.uploadDate = obtain(Property.UPLOAD_DATE);
 		this.description = obtain(Property.DESCRIPTION);
 		this.url = obtain(Property.URL, qual);
 		//this.instance = instance;
@@ -52,15 +52,14 @@ public class VideoInfo {
 	 * @return The full, raw, URL-Encoded information returned by http://www.youtube.com/get_video_info?video_id={id}
 	 */
 
-	private String getVideoInfo(String id) {
+	private String getVideoInfo(String id, String url) {
 		URL u;
 		HttpURLConnection conn;
 		InputStream is;
 		ByteArrayOutputStream output = null;
 
 		try {
-			u = new URL("https://www.youtube.com/get_video_info?video_id="
-						/*"https://www.youtube.com/watch?v="*/ + id);
+			u = new URL(url + id);
 			conn = (HttpURLConnection) u.openConnection();
 			conn.setRequestMethod("GET");
 			conn.setRequestProperty("User-Agent",
@@ -68,8 +67,7 @@ public class VideoInfo {
 			is = conn.getInputStream();
 			output = new ByteArrayOutputStream();
 			byte[] buffer = new byte[1024];
-			for (int bytesRead; (bytesRead = is.read(buffer)) != -1; )
-				output.write(buffer, 0, bytesRead);
+			for (int bytesRead; (bytesRead = is.read(buffer)) != -1;) output.write(buffer, 0, bytesRead);
 		} catch (IOException e) {
 //			Object[] option = new Object[]{"OK"};
 //			JTabbedPane tabs = instance.getTabs();
@@ -88,13 +86,15 @@ public class VideoInfo {
 //			}
 		}
 
-		return decodeCompletely(output.toString());
+		//don't URLdecode video page. only urldecode the info page
+		return url.contains("watch") ? output.toString() : decodeCompletely(output.toString());
 	}
 
 
 	/**
 	 * A private helper method to decode a url that has been recursively encoded.
-	 * I'm relatively sure that youtube encodes their video info 3 times over, but a universal method is nice to have.
+	 * I'm relatively sure that youtube urlencodes their video info about 3 times, but a universal method is nice to
+	 * have.
 	 *
 	 * @param encoded String that is URLEncoded
 	 * @return String that is completely URLDecoded
@@ -130,30 +130,31 @@ public class VideoInfo {
 	private String obtain(Property prop, DownloaderGUI.Quality... qual){
 		switch(prop){
 			case TITLE:
-				int s1 = rawVideoInfo.indexOf("&title=") + "&title=".length();
-				int s2 = rawVideoInfo.indexOf("&", s1);
-
-				return rawVideoInfo.substring(s1, s2);
+				int s1 = videoInfo.indexOf("&title=") + "&title=".length();
+				int s2 = videoInfo.indexOf("&", s1 + 5); //chances are a legit & in the title is 5+ chars down in the
+															//title
+				return videoInfo.substring(s1, s2);
 			case AUTHOR:
-				int _s1 = rawVideoInfo.indexOf("&author=") + "&author=".length();
-				int _s2 = rawVideoInfo.indexOf("&", _s1);
-
-				return rawVideoInfo.substring(_s1, _s2);
+				int _s1 = videoInfo.indexOf("&author=") + "&author=".length();
+				int _s2 = videoInfo.indexOf("&", _s1 + 5); //chances are a legit & in the title is 5+ chars
+														      //down in the channel name, as well
+				return videoInfo.substring(_s1, _s2);
 			case THUMBURL:
-				int __s1 = rawVideoInfo.indexOf("&thumbnail_url=") + "&thumbnail_url=".length();
-				int __s2 = rawVideoInfo.indexOf("&", __s1);
+				int __s1 = videoInfo.indexOf("&thumbnail_url=") + "&thumbnail_url=".length();
+				int __s2 = videoInfo.indexOf("&", __s1);
 
-				return rawVideoInfo.substring(__s1, __s2);
-			case UPLOAD_DATE:
+				return videoInfo.substring(__s1, __s2);
 			case DESCRIPTION:
+				int ___s1 = videoPage.indexOf("<p id=\"eow-description\" >") + "<p id=\"eow-description\" >".length();
+				int ___s2 = videoPage.indexOf("</p>", ___s1);
+
+				return videoPage.substring(___s1, ___s2);
 			case URL:
 				//everything should already be completely url decoded by now
-				int startIndex = rawVideoInfo.indexOf("url_encoded_fmt_stream_map=");
-				int endIndex = rawVideoInfo.lastIndexOf("&fallback_host=");
+				int startIndex = videoInfo.indexOf("url_encoded_fmt_stream_map=");
+				int endIndex = videoInfo.lastIndexOf("&fallback_host=");
 
-				log.info(rawVideoInfo.substring(startIndex));
-				log.info(rawVideoInfo.substring(endIndex));
-				String sub = rawVideoInfo.substring(startIndex, endIndex);
+				String sub = videoInfo.substring(startIndex, endIndex);
 				String[] urls = sub.split(",url=");
 				Arrays.toString(urls);
 			default:
@@ -162,17 +163,17 @@ public class VideoInfo {
 	}
 
 //	String obtainDescription() {
-//		int startIndex = rawVideoInfo.indexOf("<meta property=\"og:description\" content=\"")
+//		int startIndex = videoInfo.indexOf("<meta property=\"og:description\" content=\"")
 //				+ "<meta property=\"og:description\" content=\"".length();
-//		int endIndex = rawVideoInfo.indexOf("\">", startIndex);
-//		return rawVideoInfo.substring(startIndex, endIndex);
+//		int endIndex = videoInfo.indexOf("\">", startIndex);
+//		return videoInfo.substring(startIndex, endIndex);
 //	}
 //
 //	String obtainTitle() {
-//		int startIndex = rawVideoInfo.indexOf("<meta property=\"og:title\" content=\"")
+//		int startIndex = videoInfo.indexOf("<meta property=\"og:title\" content=\"")
 //				+ "<meta property=\"og:title\" content=\"".length();
-//		int endIndex = rawVideoInfo.indexOf("\">", startIndex);
-//		String title = rawVideoInfo.substring(startIndex, endIndex);
+//		int endIndex = videoInfo.indexOf("\">", startIndex);
+//		String title = videoInfo.substring(startIndex, endIndex);
 //
 //		//invalid characters for windows file names
 //		title = title.replace("/", "");
@@ -188,23 +189,23 @@ public class VideoInfo {
 //	}
 //
 //	String obtainAuthor() {
-//		int startIndex = rawVideoInfo.indexOf("by     <a href=\"/user/") + "by     <a href=\"/user/".length();
-//		int endIndex = rawVideoInfo.indexOf("\"", startIndex);
-//		return rawVideoInfo.substring(startIndex, endIndex);
+//		int startIndex = videoInfo.indexOf("by     <a href=\"/user/") + "by     <a href=\"/user/".length();
+//		int endIndex = videoInfo.indexOf("\"", startIndex);
+//		return videoInfo.substring(startIndex, endIndex);
 //	}
 //
 //	String obtainUploadDate() {
-//		int startIndex = rawVideoInfo.indexOf("on <span id=\"eow-date\" class=\"watch-video-date\" >")
+//		int startIndex = videoInfo.indexOf("on <span id=\"eow-date\" class=\"watch-video-date\" >")
 //				+ "on <span id=\"eow-date\" class=\"watch-video-date\" >".length();
-//		int endIndex = rawVideoInfo.indexOf("</span>", startIndex);
-//		return rawVideoInfo.substring(startIndex, endIndex);
+//		int endIndex = videoInfo.indexOf("</span>", startIndex);
+//		return videoInfo.substring(startIndex, endIndex);
 //	}
 //
 //	String obtainThumbUrl() {
-//		int startIndex = rawVideoInfo.indexOf("<meta property=\"og:image\" content=\"")
+//		int startIndex = videoInfo.indexOf("<meta property=\"og:image\" content=\"")
 //				+ "<meta property=\"og:image\" content=\"".length();
-//		int endIndex = rawVideoInfo.indexOf("\">", startIndex);
-//		return rawVideoInfo.substring(startIndex, endIndex);
+//		int endIndex = videoInfo.indexOf("\">", startIndex);
+//		return videoInfo.substring(startIndex, endIndex);
 //	}
 
 
@@ -212,10 +213,6 @@ public class VideoInfo {
 
 	public String getDescription() {
 		return this.description;
-	}
-
-	public String getUploadDate() {
-		return this.uploadDate;
 	}
 
 	public String getThumbUrl() {
