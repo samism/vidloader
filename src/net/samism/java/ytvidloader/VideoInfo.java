@@ -151,63 +151,16 @@ public class VideoInfo {
 				return videoPage.substring(___s1, ___s2);
 			case URL:
 				//everything should already be completely url decoded by now
-				int startIndex = videoInfo.indexOf("url_encoded_fmt_stream_map=");
-				int endIndex = videoInfo.lastIndexOf("&fallback_host=");
-
-				String sub = videoInfo.substring(startIndex, endIndex);
-				String[] urls = sub.split(",url=");
-				Arrays.toString(urls);
+//				int startIndex = videoInfo.indexOf("url_encoded_fmt_stream_map=");
+//				int endIndex = videoInfo.lastIndexOf("&fallback_host=");
+//
+//				String sub = videoInfo.substring(startIndex, endIndex);
+//				String[] urls = sub.split(",url=");
+//				Arrays.toString(urls);
 			default:
 				return "error";
 		}
 	}
-
-//	String obtainDescription() {
-//		int startIndex = videoInfo.indexOf("<meta property=\"og:description\" content=\"")
-//				+ "<meta property=\"og:description\" content=\"".length();
-//		int endIndex = videoInfo.indexOf("\">", startIndex);
-//		return videoInfo.substring(startIndex, endIndex);
-//	}
-//
-//	String obtainTitle() {
-//		int startIndex = videoInfo.indexOf("<meta property=\"og:title\" content=\"")
-//				+ "<meta property=\"og:title\" content=\"".length();
-//		int endIndex = videoInfo.indexOf("\">", startIndex);
-//		String title = videoInfo.substring(startIndex, endIndex);
-//
-//		//invalid characters for windows file names
-//		title = title.replace("/", "");
-//		title = title.replace("\\\\", "");
-//		title = title.replace(":", "");
-//		title = title.replace("*", "");
-//		title = title.replace("?", "");
-//		title = title.replace("\"", "");
-//		title = title.replace("<", "");
-//		title = title.replace(">", "");
-//		title = title.replace("|", "");
-//		return title;
-//	}
-//
-//	String obtainAuthor() {
-//		int startIndex = videoInfo.indexOf("by     <a href=\"/user/") + "by     <a href=\"/user/".length();
-//		int endIndex = videoInfo.indexOf("\"", startIndex);
-//		return videoInfo.substring(startIndex, endIndex);
-//	}
-//
-//	String obtainUploadDate() {
-//		int startIndex = videoInfo.indexOf("on <span id=\"eow-date\" class=\"watch-video-date\" >")
-//				+ "on <span id=\"eow-date\" class=\"watch-video-date\" >".length();
-//		int endIndex = videoInfo.indexOf("</span>", startIndex);
-//		return videoInfo.substring(startIndex, endIndex);
-//	}
-//
-//	String obtainThumbUrl() {
-//		int startIndex = videoInfo.indexOf("<meta property=\"og:image\" content=\"")
-//				+ "<meta property=\"og:image\" content=\"".length();
-//		int endIndex = videoInfo.indexOf("\">", startIndex);
-//		return videoInfo.substring(startIndex, endIndex);
-//	}
-
 
 	// getter methods
 
@@ -219,19 +172,19 @@ public class VideoInfo {
 		return this.thumbUrl;
 	}
 
-	public String getUrl() {
-		return this.url;
-	}
-
-	public String getVideoId() {
-		return this.id;
-	}
-
 	public String getVideoTitle() {
 		return this.title;
 	}
 
 	public String getVideoUploader() {
 		return this.author;
+	}
+
+	public String getUrl() {
+		return this.url;
+	}
+
+	public String getVideoId() {
+		return this.id;
 	}
 }

@@ -25,7 +25,7 @@ public class DownloaderGUI extends JFrame {
 
 	private static final Logger log = LoggerFactory.getLogger(DownloaderGUI.class);
 
-	private static final ImageIcon ADD_IMAGE, REMOVE_IMAGE, WINDOW_LOGO, PAUSE_IMAGE, PLAY_IMAGE;
+	private static final ImageIcon ADD_IMAGE, REMOVE_IMAGE, WINDOW_LOGO;
 
 	private final ArrayList<VideoInfo> downloaders = new ArrayList<>();
 	private final ArrayList<JProgressBar> bars = new ArrayList<>();
@@ -48,10 +48,11 @@ public class DownloaderGUI extends JFrame {
 
 	private final JFrame me = this;
 	private final JTabbedPane tabs = new JTabbedPane();
-	private final JButton addTabButton, removeTabButton, pauseButton, playButton,
+	private final JButton addTabButton, removeTabButton,
 			browseButton = new JButton("browse"),
 			dialogOkButton = new JButton("OK"),
-			dialogCancelButton = new JButton("Cancel");
+			dialogCancelButton = new JButton("Cancel"),
+			themeButton = new JButton("Change Theme");
 	private final JLabel saveToField = new JLabel("Loading downloads directory...");
 	private final JTextField dialogUrlField = new JTextField();
 	private final JFileChooser chooser = new JFileChooser();
@@ -60,8 +61,6 @@ public class DownloaderGUI extends JFrame {
 	static {
 		ADD_IMAGE = new ImageIcon(DownloaderGUI.class.getResource("add.png"));
 		REMOVE_IMAGE = new ImageIcon(DownloaderGUI.class.getResource("remove.png"));
-		PAUSE_IMAGE = new ImageIcon(DownloaderGUI.class.getResource("pause.jpg"));
-		PLAY_IMAGE = new ImageIcon(DownloaderGUI.class.getResource("play.png"));
 		WINDOW_LOGO = new ImageIcon(DownloaderGUI.class.getResource("logo.jpg"));
 	}
 
@@ -79,8 +78,6 @@ public class DownloaderGUI extends JFrame {
 		saveToField.setText(workingDir.getAbsolutePath());
 
 		//cannot be assigned at declaration
-		pauseButton = new JButton(PAUSE_IMAGE);
-		playButton = new JButton(PLAY_IMAGE);
 		addTabButton = new JButton(ADD_IMAGE);
 		removeTabButton = new JButton(REMOVE_IMAGE);
 
@@ -131,6 +128,7 @@ public class DownloaderGUI extends JFrame {
 		buttonPanel.add(removeTabButton, BorderLayout.NORTH);
 		buttonPanel.add(browseButton, BorderLayout.NORTH);
 		buttonPanel.add(saveToField, BorderLayout.NORTH);
+		buttonPanel.add(themeButton, BorderLayout.NORTH);
 
 		//downloads tab
 		mainPanel.add(buttonPanel, BorderLayout.NORTH);
@@ -159,7 +157,6 @@ public class DownloaderGUI extends JFrame {
 		setMinimumSize(new Dimension(750, 450));
 		setIconImage(WINDOW_LOGO.getImage());
 		setLocationRelativeTo(null);
-
 	}
 
 	private void addListeners() {
@@ -203,10 +200,9 @@ public class DownloaderGUI extends JFrame {
 				if (link.startsWith("https://www.youtube.com/watch?v=")) {
 					dialog.setVisible(false);
 
-					VideoInfo info = new VideoInfo(link, qual/*, (DownloaderGUI) me*/);
+					VideoInfo info = new VideoInfo(link, qual);
 					downloaders.add(info);
 					createTab("Video " + (tabs.getTabCount() + 1),
-							info.getUrl(),
 							info.getVideoTitle(),
 							info.getVideoUploader(),
 							info.getDescription(),
@@ -246,6 +242,52 @@ public class DownloaderGUI extends JFrame {
 		removeTabButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				destroyTab();
+			}
+		});
+
+		themeButton.addActionListener(new ActionListener() {
+			String[] themeList = new String[]{
+					"org.pushingpixels.substance.api.skin.SubstanceRavenLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceTwilightLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceEmeraldDuskLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceGraphiteAquaLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceOfficeBlue2007LookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceModerateLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceAutumnLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceBusinessBlackSteelLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceBusinessBlueSteelLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceBusinessLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceChallengerDeepLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceCremeCoffeeLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceCremeLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceDustCoffeeLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceDustLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceGeminiLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceGraphiteGlassLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceGraphiteLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceMagellanLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceMarinerLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceMistAquaLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceMistSilverLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceNebulaBrickWallLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceNebulaLookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceOfficeBlack2007LookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceOfficeSilver2007LookAndFeel",
+					"org.pushingpixels.substance.api.skin.SubstanceSaharaLookAndFeel",
+					"javax.swing.plaf.metal.MetalLookAndFeel"};
+
+			int i = 0;
+
+			public void actionPerformed(ActionEvent e) {
+				try {
+					UIManager.setLookAndFeel(themeList[i]);
+				} catch (ClassNotFoundException | IllegalAccessException | UnsupportedLookAndFeelException
+						| InstantiationException ex) {
+					ex.printStackTrace();
+				}
+				SwingUtilities.updateComponentTreeUI(me);
+				themeButton.setToolTipText(UIManager.getLookAndFeel().getName());
+				i = (i == themeList.length - 1 ? 0 : i + 1);
 			}
 		});
 	}
@@ -307,22 +349,11 @@ public class DownloaderGUI extends JFrame {
 		}
 	}
 
-	//incorporate getter/setter use of other class to get this methods info
-	private void createTab(String tabTitle, String videoUrl, String videoTitle,
+	private void createTab(String tabTitle, String videoTitle,
 	                       String videoUploader, String description, String thumbUrl) {
-		URL imgUrl = null;
-
-//		try {
-//			imgUrl = new URL(downloaders.get(tabs.getSelectedIndex() + 1).getThumbUrl());
-//		} catch (MalformedURLException e) {
-//			e.printStackTrace();
-//		}
-
 		JPanel newPanel = new JPanel();
-		JLabel titleLabel = new JLabel("Title: " + videoTitle);
-		JLabel uploaderLabel = new JLabel("Uploaded by: " + videoUploader/* + " on " + uploadDate*/);
-		JLabel descriptionLabel = new JLabel("<html>Description: " + description + "</html>");
-		JScrollPane scroller = new JScrollPane(descriptionLabel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JLabel titleLabel = new JLabel("<html><u>" + videoTitle + "</u></html>");
+		JLabel uploaderLabel = new JLabel("<html>by: <i>" + videoUploader + "</i></html>");
 		JLabel prevImg = null;
 		try {
 			prevImg = new JLabel(new ImageIcon(new URL(thumbUrl)));
@@ -331,15 +362,20 @@ public class DownloaderGUI extends JFrame {
 			log.info("unable to grab thumbnail image.");
 		}
 
+		titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
+		titleLabel.setHorizontalAlignment(SwingConstants.LEFT);
+		uploaderLabel.setFont(new Font("Georgia", Font.BOLD, 18));
+		uploaderLabel.setHorizontalAlignment(SwingConstants.LEFT);
 
-		JTextField urlLabel = new JTextField("URL: " + videoUrl);
+		JTextPane html = new JTextPane();
 
-		urlLabel.setEditable(false);
-		urlLabel.setBorder(null);
-		urlLabel.setBackground(null);
-		urlLabel.setCaretPosition(0);
+		html.setContentType("text/html");
+		html.setText(description);
+		html.setEditable(false);
+		html.setBackground(Color.GRAY);
+		html.setBorder(null);
 
-		//descriptionLabel.setMaximumSize(new Dimension(800, 500));
+		JScrollPane scrollPane = new JScrollPane(html);
 
 		//keep instances of progress bars
 		bars.add(new JProgressBar());
@@ -349,8 +385,7 @@ public class DownloaderGUI extends JFrame {
 		newPanel.add(new JSeparator());
 		newPanel.add(titleLabel);
 		newPanel.add(uploaderLabel);
-		newPanel.add(scroller);
-		newPanel.add(urlLabel);
+		newPanel.add(scrollPane);
 		newPanel.add(new JSeparator());
 		newPanel.add(bars.get(tabs.getTabCount()));
 		tabs.addTab(tabTitle, newPanel);
@@ -362,7 +397,6 @@ public class DownloaderGUI extends JFrame {
 	}
 
 	private class WindowListener extends WindowAdapter {
-
 		final Object[] options = new Object[]{"I'm sure", "No! Keep 'em loading!"};
 
 		public void windowClosing(WindowEvent e) {
