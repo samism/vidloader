@@ -31,7 +31,7 @@ public class DownloaderGUI extends JFrame {
 	private final ArrayList<DownloadWorker> workers = new ArrayList<>();
 
 	String clipboardContent = "";
-	
+
 	File defaultDownloadsDir = new File(System.getProperty("user.home") + "/Downloads"); //OS created downloads directory
 	File newDownloadsDir = new File(System.getProperty("user.dir") + "/Downloads"); //alternative to above if not found
 	File workingDir = defaultDownloadsDir; //by default is the OS downloads dir. may be altered in the constructor
@@ -349,7 +349,7 @@ public class DownloaderGUI extends JFrame {
 	}
 
 	private void createTab(String tabTitle, String videoTitle,
-	                       String videoUploader, String description, String thumbUrl) {
+						   String videoUploader, String description, String thumbUrl) {
 		JPanel newPanel = new JPanel();
 		JLabel titleLabel = new JLabel("<html><u>" + videoTitle + "</u></html>");
 		JLabel uploaderLabel = new JLabel("<html>by: <i>" + videoUploader + "</i></html>");

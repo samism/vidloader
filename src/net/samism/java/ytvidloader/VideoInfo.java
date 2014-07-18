@@ -1,5 +1,6 @@
 package net.samism.java.ytvidloader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,7 +9,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,7 +67,7 @@ public class VideoInfo {
 			is = conn.getInputStream();
 			output = new ByteArrayOutputStream();
 			byte[] buffer = new byte[1024];
-			for (int bytesRead; (bytesRead = is.read(buffer)) != -1;) output.write(buffer, 0, bytesRead);
+			for (int bytesRead; (bytesRead = is.read(buffer)) != -1; ) output.write(buffer, 0, bytesRead);
 		} catch (IOException e) {
 			log.error("Can't download anything, check your internet connection");
 		}
@@ -111,17 +111,17 @@ public class VideoInfo {
 	 * @return Parsed property as a string
 	 */
 
-	private String obtain(Property prop, DownloaderGUI.Quality... qual){
-		switch(prop){
+	private String obtain(Property prop, DownloaderGUI.Quality... qual) {
+		switch (prop) {
 			case TITLE:
 				int s1 = videoInfo.indexOf("&title=") + "&title=".length();
 				int s2 = videoInfo.indexOf("&", s1 + 5); //chances are a legit & in the title is 5+ chars down in the
-														 //title
+				//title
 				return videoInfo.substring(s1, s2);
 			case AUTHOR:
 				int _s1 = videoInfo.indexOf("&author=") + "&author=".length();
 				int _s2 = videoInfo.indexOf("&", _s1 + 5); //chances are a legit & in the title is 5+ chars
-														   //down in the channel name, as well
+				//down in the channel name, as well
 				return videoInfo.substring(_s1, _s2);
 			case THUMBURL:
 				int __s1 = videoInfo.indexOf("&thumbnail_url=") + "&thumbnail_url=".length();
@@ -135,33 +135,34 @@ public class VideoInfo {
 				return videoPage.substring(___s1, ___s2);
 			case URL:
 				//everything should already be completely url decoded by now
-				int startIndex = videoInfo.indexOf("url_encoded_fmt_stream_map=") +
-						"url_encoded_fmt_stream_map=".length();
+				//"url_encoded_fmt_stream_map=" denotes the start of the URLs
+				//trim off everything before that
+				String meta = StringUtils.substringAfter(videoInfo, "url_encoded_fmt_stream_map=");
 
-				String sub = videoInfo.substring(startIndex);
+				log.info("original: " + meta);
 
-				log.info("original: " + sub);
-
-				String delim = sub.substring(0, sub.indexOf('=', 1) + 1); //get the property that seperates the URLs
-																	  //the delim is the first char up to where the
-																	  //first '=' appears.
-				String[] urls = sub.split("(?=" + delim + ")"); //split according to the delim, but keep it as prefix
+				//delim is the unique string that will denote where the previous URL ends and the next starts
+				//must be delicately obtained because there are 10+ unique parameters that could be found and
+				//the delim might not be the quite the same for every URL it denotes
+				//need to be careful that delim doesnt occur in the body of the URL, only denotes where it starts
+				String delim = meta.substring(0, meta.indexOf('=', 1) + 1);
+				String[] urls = meta.split("(?=" + delim + ")"); //split according to the delim, but keep it as prefix
 				log.info("delimeter: " + delim);
 				printLinks(urls);
 
-				for(int i = 0; i < urls.length; i++){
+				for (int i = 0; i < urls.length; i++) {
 					//step 1. move the stuff before the start of the url to the end of it, append &title
 					log.info("url before: " + urls[i]);
 					String prefix = "";
-					if(!urls[i].startsWith("url=")) { //sometimes there are no prefixed stuff. url is the 1st thing
+					if (!urls[i].startsWith("url=")) { //sometimes there are no prefixed stuff. url is the 1st thing
 						prefix = urls[i].substring(0, urls[i].indexOf("&url="));
 					}
 					log.info("prefixed properties: " + prefix);
 					urls[i] = urls[i].substring(prefix.length()); //discard prefixed properties
 					urls[i] = urls[i].substring(urls[i].indexOf("&url=") + "&url=".length()); //remove "&url="
 					urls[i] += prefix; //add them back to the end
-					if(urls[i].charAt(urls[i].length()) == ',')
-						urls[i] = urls[i].substring(0, urls[i].length()-1); //get rid of trailing comma
+					if (urls[i].charAt(urls[i].length()) == ',')
+						urls[i] = urls[i].substring(0, urls[i].length() - 1); //get rid of trailing comma
 					log.info("after: " + urls[i]);
 
 					try {
@@ -175,7 +176,7 @@ public class VideoInfo {
 					//step 2. remove extraneous itag (causes the entire thing to break)
 					Pattern p = Pattern.compile("&itag=\\d{1,3}"); //itag code usually 2-3 integers
 					Matcher m = p.matcher(urls[i]);
-					if(m.find()){ //only expecting to find 2 matches
+					if (m.find()) { //only expecting to find 2 matches
 						urls[i] = urls[i].replaceFirst(m.group(), "");
 					}
 
@@ -187,8 +188,8 @@ public class VideoInfo {
 		}
 	}
 
-	private void printLinks(String[] u){
-		for(String _u : u)
+	private void printLinks(String[] u) {
+		for (String _u : u)
 			log.info("url: " + _u);
 	}
 
