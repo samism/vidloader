@@ -15,4 +15,4 @@ Chances are at least 1 in the 5 aren't enciphered.
 [,]?itag=\d{1,3}                    - if found prefixing the URL, just cut it out
 [,]?quality=
 [,&]?type=video/[-a-zA-Z0-9]{3,}    - matches mp4, webm, x-flv, 3gpp
-[,&]?url=
+[,&]?url=https://

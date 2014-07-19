@@ -1,11 +1,14 @@
 package net.samism.java.ytvidloader;
 
+import javafx.scene.input.KeyCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.FlavorEvent;
+import java.awt.datatransfer.FlavorListener;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.io.File;
@@ -45,7 +48,8 @@ public class DownloaderGUI extends JFrame {
 
 	private Quality qual = Quality.DEFAULT;
 
-	private final JFrame me = this;
+	private final DownloaderGUI me = this;
+	private final JPanel mainPanel = new JPanel();
 	private final JTabbedPane tabs = new JTabbedPane();
 	private final JButton addTabButton, removeTabButton,
 			browseButton = new JButton("browse"),
@@ -82,6 +86,9 @@ public class DownloaderGUI extends JFrame {
 
 		buildGUI();
 		addListeners();
+		addKeyBindings();
+
+		updateClipboard();
 
 		//look and feel
 		try {
@@ -96,6 +103,15 @@ public class DownloaderGUI extends JFrame {
 		SwingUtilities.updateComponentTreeUI(me);
 	}
 
+	private void updateClipboard() {
+		try {
+			clipboardContent = (String) Toolkit.getDefaultToolkit().
+					getSystemClipboard().getData(DataFlavor.stringFlavor);
+		} catch (UnsupportedFlavorException | IOException e1) {
+			e1.printStackTrace();
+		}
+	}
+
 	private void buildGUI() {
 		browseButton.setToolTipText("Select where to save your downloads");
 		saveToField.setToolTipText("Click to open");
@@ -103,6 +119,7 @@ public class DownloaderGUI extends JFrame {
 		removeTabButton.setToolTipText("Remove a video download");
 
 		dialogUrlField.setPreferredSize(new Dimension(300, 25));
+		dialogUrlField.setToolTipText("Click to paste URL");
 		saveToField.setPreferredSize(new Dimension(300, 25));
 		chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		chooser.setCurrentDirectory(workingDir);
@@ -114,7 +131,6 @@ public class DownloaderGUI extends JFrame {
 		JPanel dialogPanel = new JPanel();
 		dialogPanel.setLayout(new FlowLayout());
 
-		JPanel mainPanel = new JPanel();
 		mainPanel.setLayout(new BorderLayout());
 
 		//add shit
@@ -147,6 +163,7 @@ public class DownloaderGUI extends JFrame {
 		dialog.setSize(new Dimension(350, 100));
 		dialog.setLocationRelativeTo(me);
 		dialog.setResizable(false);
+		dialog.setFocusable(true);
 		dialog.setVisible(false);
 
 		//main window properties
@@ -156,6 +173,7 @@ public class DownloaderGUI extends JFrame {
 		setMinimumSize(new Dimension(750, 450));
 		setIconImage(WINDOW_LOGO.getImage());
 		setLocationRelativeTo(null);
+		setFocusable(true);
 	}
 
 	private void addListeners() {
@@ -168,16 +186,6 @@ public class DownloaderGUI extends JFrame {
 					dialogUrlField.setText(clipboardContent);
 				}
 				log.debug("Clipboard: " + clipboardContent);
-			}
-
-			public void mouseEntered(final MouseEvent e) {
-				try {
-					clipboardContent = (String) Toolkit.getDefaultToolkit().getSystemClipboard().getData(DataFlavor.stringFlavor);
-				} catch (UnsupportedFlavorException | IOException e1) {
-					e1.printStackTrace();
-				}
-
-				dialogUrlField.setToolTipText("Click to paste URL");
 			}
 		});
 
@@ -198,6 +206,7 @@ public class DownloaderGUI extends JFrame {
 				String link = dialogUrlField.getText();
 				if (link.startsWith("https://www.youtube.com/watch?v=")) {
 					dialog.setVisible(false);
+					dialogUrlField.setText("");
 
 					VideoInfo info = new VideoInfo(link, qual);
 					downloaders.add(info);
@@ -216,6 +225,7 @@ public class DownloaderGUI extends JFrame {
 
 		dialogCancelButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				dialogUrlField.setText("");
 				dialog.setVisible(false);
 			}
 		});
@@ -232,9 +242,10 @@ public class DownloaderGUI extends JFrame {
 
 		addTabButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				dialog.setVisible(true);
+				updateClipboard();
 				dialogUrlField.setText("");
 				dialogUrlField.grabFocus();
+				dialog.setVisible(true);
 			}
 		});
 
@@ -287,6 +298,39 @@ public class DownloaderGUI extends JFrame {
 				SwingUtilities.updateComponentTreeUI(me);
 				themeButton.setToolTipText(UIManager.getLookAndFeel().getName());
 				i = (i == themeList.length - 1 ? 0 : i + 1);
+			}
+		});
+
+		dialogUrlField.addFocusListener(new FocusAdapter() {
+			@Override
+			public void focusGained(FocusEvent e) {
+				updateClipboard();
+			}
+		});
+	}
+
+	public void addKeyBindings() {
+		mainPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).
+				put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
+		mainPanel.getActionMap().put("enter", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addTabButton.doClick();
+			}
+		});
+
+		dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).
+				put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "enter");
+		dialog.getRootPane().getActionMap().put("enter", new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (dialogUrlField.getText().isEmpty()) {
+					log.info(clipboardContent);
+					dialogUrlField.setText(clipboardContent);
+				} else {
+					log.info(dialogUrlField.getText());
+					dialogOkButton.doClick();
+				}
 			}
 		});
 	}

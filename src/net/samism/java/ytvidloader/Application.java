@@ -17,14 +17,12 @@ public class Application {
 	private static final Logger log = LoggerFactory.getLogger(Application.class);
 
 	public static void main(String[] args) {
-		try {
-			SwingUtilities.invokeAndWait(new Runnable() {
-				public void run() {
-					new DownloaderGUI().setVisible(true);
-				}
-			});
-		} catch (InterruptedException | InvocationTargetException e) {
-			e.printStackTrace();
-		}
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				DownloaderGUI gui = new DownloaderGUI();
+				gui.setVisible(true);
+				gui.requestFocusInWindow();
+			}
+		});
 	}
 }

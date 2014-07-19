@@ -115,7 +115,7 @@ public class VideoInfo {
 		switch (prop) {
 			case TITLE:
 				int s1 = videoInfo.indexOf("&title=") + "&title=".length();
-				int s2 = videoInfo.indexOf("&", s1 + 5); //chances are a legit & in the title is 5+ chars down in the
+				int s2 = videoInfo.indexOf("&", s1 + 5); //chances are a legit '&' in the title is 5+ chars down in the
 				//title
 				return videoInfo.substring(s1, s2);
 			case AUTHOR:
@@ -142,7 +142,7 @@ public class VideoInfo {
 				log.info("original: " + meta);
 
 				//delim is the unique string that will denote where the previous URL ends and the next starts
-				//must be delicately obtained because there are 10+ unique parameters that could be found and
+				//must be delicately obtained because there are 5 unique parameters that could be found and
 				//the delim might not be the quite the same for every URL it denotes
 				//need to be careful that delim doesnt occur in the body of the URL, only denotes where it starts
 				String delim = meta.substring(0, meta.indexOf('=', 1) + 1);
@@ -150,19 +150,23 @@ public class VideoInfo {
 				log.info("delimeter: " + delim);
 				printLinks(urls);
 
-				for (int i = 0; i < urls.length; i++) {
+				for (int i = 0; i < 1; i++) {
 					//step 1. move the stuff before the start of the url to the end of it, append &title
 					log.info("url before: " + urls[i]);
+
 					String prefix = "";
 					if (!urls[i].startsWith("url=")) { //sometimes there are no prefixed stuff. url is the 1st thing
 						prefix = urls[i].substring(0, urls[i].indexOf("&url="));
 					}
+
 					log.info("prefixed properties: " + prefix);
+
 					urls[i] = urls[i].substring(prefix.length()); //discard prefixed properties
 					urls[i] = urls[i].substring(urls[i].indexOf("&url=") + "&url=".length()); //remove "&url="
 					urls[i] += prefix; //add them back to the end
-					if (urls[i].charAt(urls[i].length()) == ',')
-						urls[i] = urls[i].substring(0, urls[i].length() - 1); //get rid of trailing comma
+
+					if (StringUtils.endsWith(urls[i], ","))
+						urls[i] = StringUtils.chop(urls[i]); //get rid of trailing comma
 					log.info("after: " + urls[i]);
 
 					try {
@@ -171,7 +175,7 @@ public class VideoInfo {
 						e.printStackTrace();
 					}
 
-					log.info("After title: " + urls[i]);
+					//log.info("After title: " + urls[i]);
 
 					//step 2. remove extraneous itag (causes the entire thing to break)
 					Pattern p = Pattern.compile("&itag=\\d{1,3}"); //itag code usually 2-3 integers
