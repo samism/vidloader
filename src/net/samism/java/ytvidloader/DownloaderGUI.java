@@ -1,15 +1,12 @@
 package net.samism.java.ytvidloader;
 
-import javafx.scene.input.KeyCode;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.FlavorEvent;
-import java.awt.datatransfer.FlavorListener;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.io.File;
@@ -36,7 +33,7 @@ public class DownloaderGUI extends JFrame {
 
 	String clipboardContent = "";
 
-	File defaultDownloadsDir = new File(System.getProperty("user.home") + "/Downloads"); //OS created downloads directory
+	File defaultDownloadsDir = new File(System.getProperty("user.home") + "/Downloads"); //OS downloads directory
 	File newDownloadsDir = new File(System.getProperty("user.dir") + "/Downloads"); //alternative to above if not found
 	File workingDir = defaultDownloadsDir; //by default is the OS downloads dir. may be altered in the constructor
 
@@ -191,7 +188,7 @@ public class DownloaderGUI extends JFrame {
 
 					VideoInfo info = new VideoInfo(link, qual);
 					downloaders.add(info);
-					createTab("Video " + (tabs.getTabCount() + 1),
+					createTab(StringUtils.abbreviate(info.getVideoTitle(), 15),
 							info.getVideoTitle(),
 							info.getVideoUploader(),
 							info.getDescription(),

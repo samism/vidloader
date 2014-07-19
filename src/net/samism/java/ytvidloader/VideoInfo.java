@@ -4,10 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,9 +21,8 @@ import java.util.regex.Pattern;
  * Time: 4:47 PM
  */
 
-/*
+/**
  * This class is dedicated to parsing youtube data
- *
  */
 
 public class VideoInfo {
@@ -63,7 +64,8 @@ public class VideoInfo {
 			conn = (HttpURLConnection) u.openConnection();
 			conn.setRequestMethod("GET");
 			conn.setRequestProperty("User-Agent",
-					"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.122 Safari/534.30");
+					"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.30 (KHTML, like Gecko) " +
+							"Chrome/12.0.742.122 Safari/534.30");
 			is = conn.getInputStream();
 			output = new ByteArrayOutputStream();
 			byte[] buffer = new byte[1024];
@@ -73,34 +75,11 @@ public class VideoInfo {
 		}
 
 		//don't URLdecode video page. only urldecode the info page
-		return url.contains("watch") ? output.toString() : decodeCompletely(output.toString());
+		return url.contains("watch") ?
+				output.toString() :
+				StringUtils2.decodeCompletely(output.toString());
 	}
 
-
-	/**
-	 * A private helper method to decode a url that has been recursively encoded.
-	 * I'm relatively sure that youtube urlencodes their video info about 3 times, but a universal method is nice to
-	 * have.
-	 *
-	 * @param encoded String that is URLEncoded
-	 * @return String that is completely URLDecoded
-	 */
-	private String decodeCompletely(String encoded) {
-		String uno = encoded;
-		String dos = uno;
-
-		do {
-			uno = dos;
-			try {
-				dos = URLDecoder.decode(uno, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-
-		} while (!uno.equals(dos));
-
-		return uno; //can return either one at this point
-	}
 
 	/**
 	 * Universal method to replace individual ones. Parses out a useful property from the
@@ -113,23 +92,25 @@ public class VideoInfo {
 
 	private String obtain(Property prop, DownloaderGUI.Quality... qual) {
 		switch (prop) {
+			//im expecting the properties found in the html page to break periodically, as Google refactors & updates
+			//their video page
 			case TITLE:
-				int s1 = videoInfo.indexOf("&title=") + "&title=".length();
+				int s1 = StringUtils2.indexOfLastChar(videoInfo, "&title=");
 				int s2 = videoInfo.indexOf("&", s1 + 5); //chances are a legit '&' in the title is 5+ chars down in the
 				//title
 				return videoInfo.substring(s1, s2);
 			case AUTHOR:
-				int _s1 = videoInfo.indexOf("&author=") + "&author=".length();
+				int _s1 = StringUtils2.indexOfLastChar(videoInfo, "&author=");
 				int _s2 = videoInfo.indexOf("&", _s1 + 5); //chances are a legit & in the title is 5+ chars
 				//down in the channel name, as well
 				return videoInfo.substring(_s1, _s2);
 			case THUMBURL:
-				int __s1 = videoInfo.indexOf("&thumbnail_url=") + "&thumbnail_url=".length();
+				int __s1 = StringUtils2.indexOfLastChar(videoInfo, "&thumbnail_url=");
 				int __s2 = videoInfo.indexOf("&", __s1);
 
 				return videoInfo.substring(__s1, __s2);
 			case DESCRIPTION:
-				int ___s1 = videoPage.indexOf("<p id=\"eow-description\" >") + "<p id=\"eow-description\" >".length();
+				int ___s1 = StringUtils2.indexOfLastChar(videoInfo, "<p id=\"eow-description\" >");
 				int ___s2 = videoPage.indexOf("</p>", ___s1);
 
 				return videoPage.substring(___s1, ___s2);
