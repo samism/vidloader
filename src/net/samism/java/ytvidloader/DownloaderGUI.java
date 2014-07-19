@@ -4,6 +4,7 @@ import javafx.scene.input.KeyCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -62,13 +63,17 @@ public class DownloaderGUI extends JFrame {
 	private final JDialog dialog = new JDialog(this, "Add Download");
 
 	static {
-		ADD_IMAGE = new ImageIcon(DownloaderGUI.class.getResource("add.png"));
-		REMOVE_IMAGE = new ImageIcon(DownloaderGUI.class.getResource("remove.png"));
-		WINDOW_LOGO = new ImageIcon(DownloaderGUI.class.getResource("logo.jpg"));
+		ADD_IMAGE = new ImageIcon(DownloaderGUI.class.getResource("resources/add.png"));
+		REMOVE_IMAGE = new ImageIcon(DownloaderGUI.class.getResource("resources/remove.png"));
+		WINDOW_LOGO = new ImageIcon(DownloaderGUI.class.getResource("resources/big-logo.jpg"));
 	}
 
 	public DownloaderGUI() {
-		//check if OS download dir exists. if it doesn't, create a custom one in the current directory
+		//cannot be assigned at declaration
+		addTabButton = new JButton(ADD_IMAGE);
+		removeTabButton = new JButton(REMOVE_IMAGE);
+
+		//check if the OS dir exists. if it doesn't, create a custom one in the current directory
 		if (!defaultDownloadsDir.exists()) {
 			if (newDownloadsDir.mkdir()) {
 				log.info("OS downloads folder doesn't exist, a local one was created");
@@ -80,36 +85,12 @@ public class DownloaderGUI extends JFrame {
 
 		saveToField.setText(workingDir.getAbsolutePath());
 
-		//cannot be assigned at declaration
-		addTabButton = new JButton(ADD_IMAGE);
-		removeTabButton = new JButton(REMOVE_IMAGE);
-
 		buildGUI();
 		addListeners();
 		addKeyBindings();
 
 		updateClipboard();
-
-		//look and feel
-		try {
-			UIManager.setLookAndFeel("org.pushingpixels.substance.api.skin.SubstanceGraphiteLookAndFeel");
-		} catch (Exception e) { //cast up to avoid unlikely exceptions
-			e.printStackTrace();
-		}
-
-		//required for laf to kick in
-		SwingUtilities.updateComponentTreeUI(chooser);
-		SwingUtilities.updateComponentTreeUI(dialog);
-		SwingUtilities.updateComponentTreeUI(me);
-	}
-
-	private void updateClipboard() {
-		try {
-			clipboardContent = (String) Toolkit.getDefaultToolkit().
-					getSystemClipboard().getData(DataFlavor.stringFlavor);
-		} catch (UnsupportedFlavorException | IOException e1) {
-			e1.printStackTrace();
-		}
+		updateLAF();
 	}
 
 	private void buildGUI() {
@@ -325,10 +306,8 @@ public class DownloaderGUI extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (dialogUrlField.getText().isEmpty()) {
-					log.info(clipboardContent);
 					dialogUrlField.setText(clipboardContent);
 				} else {
-					log.info(dialogUrlField.getText());
 					dialogOkButton.doClick();
 				}
 			}
@@ -385,6 +364,7 @@ public class DownloaderGUI extends JFrame {
 				}
 				log.info("removed tab " + i + " successfully");
 			}
+
 			log.info("disposing of window");
 			me.dispose();
 			log.info("program closing");
@@ -433,6 +413,29 @@ public class DownloaderGUI extends JFrame {
 		newPanel.add(bars.get(tabs.getTabCount()));
 		tabs.addTab(tabTitle, newPanel);
 		tabs.setSelectedComponent(tabs.getComponentAt(tabs.getTabCount() - 1));
+	}
+
+	private void updateClipboard() {
+		try {
+			clipboardContent = (String) Toolkit.getDefaultToolkit().
+					getSystemClipboard().getData(DataFlavor.stringFlavor);
+		} catch (UnsupportedFlavorException | IOException e1) {
+			e1.printStackTrace();
+		}
+	}
+
+	private void updateLAF() {
+		//look and feel
+		try {
+			UIManager.setLookAndFeel("org.pushingpixels.substance.api.skin.SubstanceGraphiteLookAndFeel");
+		} catch (Exception e) { //cast up to avoid unlikely exceptions
+			e.printStackTrace();
+		}
+
+		//required for laf to kick in
+		SwingUtilities.updateComponentTreeUI(chooser);
+		SwingUtilities.updateComponentTreeUI(dialog);
+		SwingUtilities.updateComponentTreeUI(me);
 	}
 
 	public JTabbedPane getTabs() {
