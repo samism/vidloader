@@ -2,6 +2,7 @@ package net.samism.java.ytvidloader;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 /**
  * Created with IntelliJ IDEA.
@@ -47,5 +48,15 @@ public class StringUtils2 {
 		} while (!uno.equals(dos));
 
 		return uno; //can return either one at this point
+	}
+
+	/**
+	 * For generating relatively safe filenames
+	 *
+	 * @param s A filename that might be unsafe for an OS
+	 * @return The same string with everything except letters, numbers, ".", and "-" replaced with an underscore ("_").
+	 */
+	public static String normalizeForOS(String s) {
+		return s.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
 	}
 }

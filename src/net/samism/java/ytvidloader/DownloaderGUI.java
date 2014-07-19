@@ -396,6 +396,7 @@ public class DownloaderGUI extends JFrame {
 		html.setBorder(null);
 
 		JScrollPane scrollPane = new JScrollPane(html);
+		html.setCaretPosition(0);
 
 		//keep instances of progress bars
 		bars.add(new JProgressBar());

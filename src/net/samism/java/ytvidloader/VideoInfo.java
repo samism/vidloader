@@ -28,16 +28,17 @@ import java.util.regex.Pattern;
 public class VideoInfo {
 	private static final Logger log = LoggerFactory.getLogger(VideoInfo.class);
 
-	private String id, title, author, videoInfo, videoPage, url, thumbUrl, description;
+	private String id, title, author, videoInfo, videoPage, url, thumbUrl, description, leanLinks;
 
 	enum Property {
 		TITLE, AUTHOR, THUMBURL, DESCRIPTION, URL
 	}
 
 	public VideoInfo(String link, DownloaderGUI.Quality qual) {
-		this.id = link.substring(link.indexOf("=") + 1);
+		this.id = StringUtils.substringAfter(link, "=");
 		this.videoInfo = getVideoInfo(id, "https://www.youtube.com/get_video_info?video_id=");
 		this.videoPage = getVideoInfo(id, "https://www.youtube.com/watch?v=");
+		this.leanLinks = trimGarbage(videoInfo);
 		this.title = obtain(Property.TITLE);
 		this.author = obtain(Property.AUTHOR);
 		this.thumbUrl = obtain(Property.THUMBURL);
@@ -91,6 +92,7 @@ public class VideoInfo {
 	 */
 
 	private String obtain(Property prop, DownloaderGUI.Quality... qual) {
+
 		switch (prop) {
 			//im expecting the properties found in the html page to break periodically, as Google refactors & updates
 			//their video page
@@ -110,31 +112,29 @@ public class VideoInfo {
 
 				return videoInfo.substring(__s1, __s2);
 			case DESCRIPTION:
-				int ___s1 = StringUtils2.indexOfLastChar(videoInfo, "<p id=\"eow-description\" >");
+				int ___s1 = StringUtils2.indexOfLastChar(videoPage, "<p id=\"eow-description\" >");
 				int ___s2 = videoPage.indexOf("</p>", ___s1);
 
 				return videoPage.substring(___s1, ___s2);
 			case URL:
-				//everything should already be completely url decoded by now
-				//"url_encoded_fmt_stream_map=" denotes the start of the URLs
-				//trim off everything before that
-				String meta = StringUtils.substringAfter(videoInfo, "url_encoded_fmt_stream_map=");
-
-				log.info("original: " + meta);
+				log.info("original: " + leanLinks);
 
 				//delim is the unique string that will denote where the previous URL ends and the next starts
 				//must be delicately obtained because there are 5 unique parameters that could be found and
 				//the delim might not be the quite the same for every URL it denotes
 				//need to be careful that delim doesnt occur in the body of the URL, only denotes where it starts
-				String delim = meta.substring(0, meta.indexOf('=', 1) + 1);
-				String[] urls = meta.split("(?=" + delim + ")"); //split according to the delim, but keep it as prefix
+				String delim = leanLinks.substring(0, leanLinks.indexOf('=', 1) + 1);
+				delim = getDelimRegex(delim);
+				String[] urls = leanLinks.split("(?=" + delim + ")"); //split according to the delim, but keep it as prefix
 				log.info("delimeter: " + delim);
+				log.info("Links just after splitting by delim:");
 				printLinks(urls);
 
-				for (int i = 0; i < 1; i++) {
-					//step 1. move the stuff before the start of the url to the end of it, append &title
-					log.info("url before: " + urls[i]);
+				for (int i = 0; i < urls.length; i++) {
+					if (StringUtils.endsWith(urls[i], ","))
+						urls[i] = StringUtils.chop(urls[i]); //get rid of trailing comma
 
+					//step 1. move the stuff before the start of the url to the end of it, append &title
 					String prefix = "";
 					if (!urls[i].startsWith("url=")) { //sometimes there are no prefixed stuff. url is the 1st thing
 						prefix = urls[i].substring(0, urls[i].indexOf("&url="));
@@ -143,18 +143,22 @@ public class VideoInfo {
 					log.info("prefixed properties: " + prefix);
 
 					urls[i] = urls[i].substring(prefix.length()); //discard prefixed properties
-					urls[i] = urls[i].substring(urls[i].indexOf("&url=") + "&url=".length()); //remove "&url="
+					urls[i] = StringUtils.substringAfter(urls[i], "&url="); //remove "&url="
 					urls[i] += prefix; //add them back to the end
 
-					if (StringUtils.endsWith(urls[i], ","))
-						urls[i] = StringUtils.chop(urls[i]); //get rid of trailing comma
 					log.info("after: " + urls[i]);
 
+					String fileName = title;
+					fileName = StringUtils2.normalizeForOS(fileName); //no illegal chars
+
 					try {
-						urls[i] += "&title=" + URLEncoder.encode(title, "UTF-8"); //make sure title of video is url safe
+						fileName = URLEncoder.encode(fileName, "UTF-8"); //urlencode
 					} catch (UnsupportedEncodingException e) {
 						e.printStackTrace();
 					}
+
+					urls[i] += "&title=" + fileName; //make sure title of video is url safe
+
 
 					//log.info("After title: " + urls[i]);
 
@@ -170,6 +174,52 @@ public class VideoInfo {
 				}
 			default:
 				return "error";
+		}
+
+	}
+
+	/**
+	 * Purpose of this method is to take in the raw metadata from "get_video_info" and return a String
+	 * free of any garbage metadata other than that of the URLs. Needed because URLs cannot be reliably parsed
+	 * if the URLs are polluted with random other properties in between.
+	 *
+	 * @param raw String of links+garbage
+	 * @return String of only links
+	 */
+	private String trimGarbage(String raw){
+		//first, get rid of, and everything preceding "url_encoded..."
+		raw = StringUtils.substringAfter(videoInfo, "url_encoded_fmt_stream_map=");
+
+		//all of the properties found in "get_video_info" that are not part of the URLs. Need to get rid of all of these
+		//prefixed with '&' and suffixed with '='
+		String[] garbage = new String[] {
+				"title", "muted", "cbrver", "avg_rating", "video_id", "iurlmaxres", "account_playback_token",
+				"plid", "tmi", "cosver", "iurlhq", "iurlsd", "status", "watermark", "timestamp", "pltype",
+				"allow_embed", "adaptive_fmts", "init", "sver", "mt", "author", "has_cc", "eventid", "iurl",
+				"view_count", "hl", "idpj", "storyboard_spec", "no_get_video_log", "c", "video_verticals",
+				"fexp", "sw", "enablecsi", "vq", "ldpj", "length_seconds", "ptk", "fmt_list", "dash",
+				"csi_page_type", "use_cipher_signature", "track_embed", "token", "allow_ratings", "index",
+				"loudness", "iurlmq", "thumbnail_url", "keywords", "dashmpd"
+		};
+
+		return null;
+	}
+
+
+	private String getDelimRegex(String delim) {
+		switch (delim) {
+			case "type=":
+				return "type=video/[-a-zA-Z0-9]{3,}";
+			case "quality=":
+				return "quality=";
+			case "itag=":
+				return "itag=\\d{1,3}";
+			case "url=":
+				return "url=https://";
+			case "fallback_host=":
+				return "fallbackhost=tc.v";
+			default:
+				return null;
 		}
 	}
 

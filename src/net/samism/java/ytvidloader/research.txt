@@ -7,7 +7,70 @@ Chances are at least 1 in the 5 aren't enciphered.
 
 -part of the garbage:
 
-"&title={Game of Thrones} R L=J&muted=0&cbrver=12.0.742.122&avg_rating=4.74193548387&video_id=Dmyz5X9OR4U&iurlmaxres=https://i1.ytimg.com/vi/Dmyz5X9OR4U/maxresdefault.jpg&account_playback_token=QUFFLUhqbmtNc3JRaFVGaG1ZMU5wd1N3dThKbG9GUzk0d3xBQ3Jtc0tsUGxOcC1Bd3ZOci02VFh4dWJ1Y2hKclFLQVBjZ0RWTDZmeGJhZ2FLY0x6SDJVWTlSMmRUY3Z5VmlIYjRXanFmcnBQS21zeTlwWGMxX05aRmdWTFhYNzJkSV9kaWpzYW1Cb0V5aHlsOTRESVQyM2ZUVQ==&plid=AAT-dKTz1pFL51QX&tmi=1&cosver=6.1&iurlhq=https://i1.ytimg.com/vi/Dmyz5X9OR4U/hqdefault.jpg&iurlsd=https://i1.ytimg.com/vi/Dmyz5X9OR4U/sddefault.jpg&status=ok&watermark=,https://s.ytimg.com/yts/img/watermark/youtube_watermark-vflHX6b6E.png,https://s.ytimg.com/yts/img/watermark/youtube_hd_watermark-vflAzLcD6.png&timestamp=1405676843&pltype=contentugc&allow_embed=1&adaptive_fmts=index=713-1248&init=0-712&clen=50022704&lmt=1401320482931490&itag=137"
+&title=
+&muted=
+&cbrver=
+&avg_rating=
+&video_id=
+&iurlmaxres=
+&account_playback_token=
+&plid=
+&tmi=
+&cosver=
+&iurlhq=
+&iurlsd=
+&status=
+&watermark=
+&timestamp=
+&pltype=
+&allow_embed=
+&adaptive_fmts=
+&init=
+
+&sver=
+&mt=
+&author=
+&has_cc=
+&eventid=
+&iurl=
+&view_count=
+&hl=
+&idpj=
+&storyboard_spec=
+&no_get_video_log=
+&c=
+&video_verticals=
+&fexp=
+&sw=
+&enablecsi=
+&vq=
+&ldpj=
+&length_seconds=
+&ptk=
+&fmt_list=
+
+&dash=
+&csi_page_type=
+&use_cipher_signature=
+&track_embed=
+&token=
+&allow_ratings=
+&cbr=
+
+&index=
+&loudness=
+&iurlmq=
+&thumbnail_url=
+&keywords=
+&dashmpd
+
+
+
+
+
+
+-safe stuff:
+sparams=clen,dur,gir,id,ip,ipbits,itag,lmt,requiressl,source,upn,expire
 
 -only params that are ever before the url are 0-5 of the following, randomly (regex):
 
@@ -16,3 +79,6 @@ Chances are at least 1 in the 5 aren't enciphered.
 [,]?quality=
 [,&]?type=video/[-a-zA-Z0-9]{3,}    - matches mp4, webm, x-flv, 3gpp
 [,&]?url=https://
+
+-the delimeter isn't always the delimiter. More than half of the file doesn't even contain the delim sometimes.
+Check which of the params before the URL occur most often in the entire file, that is the delim?
