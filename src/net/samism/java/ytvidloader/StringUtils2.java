@@ -13,11 +13,11 @@ import java.net.URLEncoder;
 public class StringUtils2 {
 
 	/**
-	 * Returns the index of where the given string ends rather than where it starts
+	 * Returns the index of where the given substring ends, rather than where it starts
 	 * as per String#indexOf
 	 *
 	 * @param str    String in question
-	 * @param phrase String to find the index of
+	 * @param phrase substring to find the index of
 	 * @return The index of where the given string ends rather than where it starts
 	 * as per String#indexOf
 	 */

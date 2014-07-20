@@ -182,29 +182,39 @@ public class VideoInfo {
 	 * Purpose of this method is to take in the raw metadata from "get_video_info" and return a String
 	 * free of any garbage metadata other than that of the URLs. Needed because URLs cannot be reliably parsed
 	 * if the URLs are polluted with random other properties in between.
+	 * <p/>
+	 * Another function is to make sure there are no double commas or ampersands
 	 *
 	 * @param raw String of links+garbage
 	 * @return String of only links
 	 */
-	private String trimGarbage(String raw){
-		//first, get rid of, and everything preceding "url_encoded..."
+	private String trimGarbage(String raw) {
+		//first, get rid of, and everything preceding, "url_encoded..."
 		raw = StringUtils.substringAfter(videoInfo, "url_encoded_fmt_stream_map=");
 
 		//all of the properties found in "get_video_info" that are not part of the URLs. Need to get rid of all of these
-		//prefixed with '&' and suffixed with '='
-		String[] garbage = new String[] {
+		//their values reside between a succeeding '=' and a '&'
+		String[] garbage = new String[]{
 				"title", "muted", "cbrver", "avg_rating", "video_id", "iurlmaxres", "account_playback_token",
 				"plid", "tmi", "cosver", "iurlhq", "iurlsd", "status", "watermark", "timestamp", "pltype",
 				"allow_embed", "adaptive_fmts", "init", "sver", "mt", "author", "has_cc", "eventid", "iurl",
 				"view_count", "hl", "idpj", "storyboard_spec", "no_get_video_log", "c", "video_verticals",
 				"fexp", "sw", "enablecsi", "vq", "ldpj", "length_seconds", "ptk", "fmt_list", "dash",
 				"csi_page_type", "use_cipher_signature", "track_embed", "token", "allow_ratings", "index",
-				"loudness", "iurlmq", "thumbnail_url", "keywords", "dashmpd"
+				"loudness", "iurlmq", "thumbnail_url", "keywords", "dashmpd", "cbr"
 		};
 
-		return null;
-	}
+		for (String param : garbage) {
+			String regex = param + "=.*&"; //& denotes parameter end
+			raw = StringUtils.removePattern(raw, regex);
+		}
 
+		//double amps or commas might occur. can't have this throw off the parsing later
+		raw = raw.replaceAll("&{2}", "&");
+		raw = raw.replaceAll(",{2}", ",");
+
+		return raw;
+	}
 
 	private String getDelimRegex(String delim) {
 		switch (delim) {
