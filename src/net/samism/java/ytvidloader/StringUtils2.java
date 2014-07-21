@@ -3,6 +3,8 @@ package net.samism.java.ytvidloader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -67,5 +69,30 @@ public class StringUtils2 {
 			}
 		}
 		return false;
+	}
+
+	public static void logStringArray(String[] u, org.slf4j.Logger log) {
+		for (String _u : u)
+			log.info("url: " + _u);
+	}
+
+	public static void printStringArray(String[] u, String label) {
+		for (String _u : u)
+			System.out.println(label + _u);
+	}
+
+	public static void printAsStringArray(String[] u) {
+		StringBuilder s = new StringBuilder("new String[] {");
+
+		for (int i = 0; i < u.length; i++) {
+			s.append("\"" + u[i] + "\"");
+			if (i == u.length - 1) {
+				s.append("};");
+			} else {
+				s.append(", ");
+			}
+		}
+
+		System.out.println(s.toString());
 	}
 }

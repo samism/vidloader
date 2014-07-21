@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static net.samism.java.ytvidloader.StringUtils2.logStringArray;
+
 /**
  * Created with IntelliJ IDEA.
  * Author: Sameer Ismail
@@ -126,7 +128,8 @@ public class VideoInfo {
 				String[] urls = leanLinks.split("(?=" + delim + ")"); //split according to the delim, but keep it as prefix
 				log.info("delimeter: " + delim);
 				log.info("Links just after splitting by delim:");
-				printLinks(urls);
+
+				logStringArray(urls, log);
 
 				for (int i = 0; i < 1; i++) {
 					if (StringUtils.endsWith(urls[i], ","))
@@ -189,7 +192,7 @@ public class VideoInfo {
 	private String trimGarbage(String raw) {
 		//first, get rid of, and everything preceding, "url_encoded..."
 		raw = StringUtils.substringAfter(videoInfo, "url_encoded_fmt_stream_map=");
-		raw = raw.replaceAll("adaptive_fmts=", "");
+		raw = raw.replaceAll("&adaptive_fmts=", "");
 
 		log.info("raw before:" + raw);
 
@@ -202,9 +205,17 @@ public class VideoInfo {
 				"view_count", "hl", "idpj", "storyboard_spec", "no_get_video_log", "c", "video_verticals",
 				"fexp", "sw", "enablecsi", "vq", "ldpj", "length_seconds", "ptk", "fmt_list", "dash",
 				"csi_page_type", "use_cipher_signature", "track_embed", "token", "allow_ratings", "index",
-				"loudness", "iurlmq", "thumbnail_url", "dashmpd", "cbr",
+				"loudness", "iurlmq", "thumbnail_url", "dashmpd", "cbr", "allowed_ads", "host_language",
+				"ad_logging_flag", "midroll_prefetch_size", "afv", "allow_html5_ads", "sffb", "uid",
+				"iv3_module", "ad_video_pub_id", "focEnabled", "rmktPingThreshold", "&pyv_in_related_cafe_experiment_id",
+				"ad_host_tier", "excluded_ads", "iv_load_policy", "oid", "ytfocEnabled", "cos", "cc_module",
+				"vid", "instream_long", "mpvid", "ttsurl", "key", "asr_langs", "v", "caps", "baseUrl",
+				"midroll_freqcap", "gut_tag", "loeid", "ad_channel_code_overlay", "iv_allowed_in_place_switch",
+				"ad_host", "ad_eurl", "afv_ad_tag", "client", "description_url", "host", "ht_id", "ytdevice",
+				"yt_pt", "channel", "ptchn", "iv_invideo_url", "cta", "as_launched_in_country", "adsense_video_doc_id",
+				"cc_font", "cc_asr", "ad_device", "cafe_experiment_id", "ad_module", "iv_module", "cid", "mts", "mws",
+//				"sparams", "url", //normally ok but if included within garbage, become garbage
 //				"adaptive_fmts", //this one often has no value &, breaks regex
-				"mts", "mws",
 				"title", "keywords" //these might have random &, breaks regex
 		};
 
@@ -249,11 +260,6 @@ public class VideoInfo {
 			default:
 				return null;
 		}
-	}
-
-	private void printLinks(String[] u) {
-		for (String _u : u)
-			log.info("url: " + _u);
 	}
 
 	// getter methods

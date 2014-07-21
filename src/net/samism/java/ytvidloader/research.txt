@@ -66,6 +66,67 @@ Chances are at least 1 in the 5 aren't enciphered.
 
 &cbr
 
+&allowed_ads=
+&host_language=
+&ad_logging_flag=
+&midroll_prefetch_size=
+&afv=
+&allow_html5_ads=
+&sffb=
+&uid=
+&iv3_module=
+&ad_video_pub_id=
+&focEnabled=
+&rmktPingThreshold=
+&pyv_in_related_cafe_experiment_id=
+&ad_host_tier=
+&excluded_ads=
+&iv_load_policy=
+&oid=
+&ytfocEnabled=
+&cos=
+&cc_module=
+&vid=
+&instream_long=
+&mpvid=
+&ttsurl=
+&key=
+&asr_langs=
+&v=
+????&signature=
+&caps=
+???&sparams=
+&baseUrl=
+&midroll_freqcap=
+&gut_tag=
+&loeid=
+&ad_channel_code_overlay=
+
+&iv_allow_in_place_switch=
+&ad_host=
+&ad_eurl=
+&afv_ad_tag=
+&client=
+&description_url=
+&host=
+&ht_id=
+???&url=
+&ytdevice=
+&yt_pt=
+&channel=
+&ptchn=
+&iv_invideo_url=
+&cta=
+&as_launched_in_country=
+&adsense_video_doc_id=
+&cc_font=
+&cc_asr=
+&ad_device=
+&cafe_experiment_id=
+&ad_module=
+&iv_module=
+&cid=
+
 
 
 
