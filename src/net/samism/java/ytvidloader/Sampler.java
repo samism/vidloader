@@ -24,7 +24,7 @@ import java.net.URLDecoder;
 public class Sampler {
 
 	public static void main(String[] args) {
-		new Sampler().sample("Dmyz5X9OR4U", 5); //a random video ID, x amount of times
+		new Sampler().sample("xKgUwR5iMNY", 5); //a random video ID, x amount of times
 	}
 
 	public Sampler() {

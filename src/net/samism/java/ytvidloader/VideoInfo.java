@@ -11,6 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -92,7 +93,6 @@ public class VideoInfo {
 	 */
 
 	private String obtain(Property prop, DownloaderGUI.Quality... qual) {
-
 		switch (prop) {
 			//im expecting the properties found in the html page to break periodically, as Google refactors & updates
 			//their video page
@@ -117,8 +117,6 @@ public class VideoInfo {
 
 				return videoPage.substring(___s1, ___s2);
 			case URL:
-				log.info("original: " + leanLinks);
-
 				//delim is the unique string that will denote where the previous URL ends and the next starts
 				//must be delicately obtained because there are 5 unique parameters that could be found and
 				//the delim might not be the quite the same for every URL it denotes
@@ -130,7 +128,7 @@ public class VideoInfo {
 				log.info("Links just after splitting by delim:");
 				printLinks(urls);
 
-				for (int i = 0; i < urls.length; i++) {
+				for (int i = 0; i < 1; i++) {
 					if (StringUtils.endsWith(urls[i], ","))
 						urls[i] = StringUtils.chop(urls[i]); //get rid of trailing comma
 
@@ -148,29 +146,29 @@ public class VideoInfo {
 
 					log.info("after: " + urls[i]);
 
-					String fileName = title;
-					fileName = StringUtils2.normalizeForOS(fileName); //no illegal chars
+//					String fileName = title;
+//					fileName = StringUtils2.normalizeForOS(fileName); //no illegal chars
+//
+//					try {
+//						fileName = URLEncoder.encode(fileName, "UTF-8"); //urlencode
+//					} catch (UnsupportedEncodingException e) {
+//						e.printStackTrace();
+//					}
+//
+//					urls[i] += "&title=" + fileName; //make sure title of video is url safe
 
-					try {
-						fileName = URLEncoder.encode(fileName, "UTF-8"); //urlencode
-					} catch (UnsupportedEncodingException e) {
-						e.printStackTrace();
-					}
 
-					urls[i] += "&title=" + fileName; //make sure title of video is url safe
-
-
-					//log.info("After title: " + urls[i]);
-
-					//step 2. remove extraneous itag (causes the entire thing to break)
-					Pattern p = Pattern.compile("&itag=\\d{1,3}"); //itag code usually 2-3 integers
-					Matcher m = p.matcher(urls[i]);
-					if (m.find()) { //only expecting to find 2 matches
-						urls[i] = urls[i].replaceFirst(m.group(), "");
-					}
-
-					log.info("After itag: " + urls[i]);
-					//printLinks(urls);
+//					//log.info("After title: " + urls[i]);
+//
+//					//step 2. remove extraneous itag (causes the entire thing to break)
+//					Pattern p = Pattern.compile("&itag=\\d{1,3}"); //itag code usually 2-3 integers
+//					Matcher m = p.matcher(urls[i]);
+//					if (m.find()) { //only expecting to find 2 matches
+//						urls[i] = urls[i].replaceFirst(m.group(), "");
+//					}
+//
+//					log.info("After itag: " + urls[i]);
+//					//printLinks(urls);
 				}
 			default:
 				return "error";
@@ -191,23 +189,43 @@ public class VideoInfo {
 	private String trimGarbage(String raw) {
 		//first, get rid of, and everything preceding, "url_encoded..."
 		raw = StringUtils.substringAfter(videoInfo, "url_encoded_fmt_stream_map=");
+		raw = raw.replaceAll("adaptive_fmts=", "");
+
+		log.info("raw before:" + raw);
 
 		//all of the properties found in "get_video_info" that are not part of the URLs. Need to get rid of all of these
 		//their values reside between a succeeding '=' and a '&'
 		String[] garbage = new String[]{
-				"title", "muted", "cbrver", "avg_rating", "video_id", "iurlmaxres", "account_playback_token",
+				"muted", "cbrver", "avg_rating", "video_id", "iurlmaxres", "account_playback_token",
 				"plid", "tmi", "cosver", "iurlhq", "iurlsd", "status", "watermark", "timestamp", "pltype",
-				"allow_embed", "adaptive_fmts", "init", "sver", "mt", "author", "has_cc", "eventid", "iurl",
+				"allow_embed", "init", "sver", "mt", "author", "has_cc", "eventid", "iurl",
 				"view_count", "hl", "idpj", "storyboard_spec", "no_get_video_log", "c", "video_verticals",
 				"fexp", "sw", "enablecsi", "vq", "ldpj", "length_seconds", "ptk", "fmt_list", "dash",
 				"csi_page_type", "use_cipher_signature", "track_embed", "token", "allow_ratings", "index",
-				"loudness", "iurlmq", "thumbnail_url", "keywords", "dashmpd", "cbr"
+				"loudness", "iurlmq", "thumbnail_url", "dashmpd", "cbr",
+//				"adaptive_fmts", //this one often has no value &, breaks regex
+				"mts", "mws",
+				"title", "keywords" //these might have random &, breaks regex
 		};
 
 		for (String param : garbage) {
-			String regex = param + "=.*&"; //& denotes parameter end
-			raw = StringUtils.removePattern(raw, regex);
+			String regex = "(?:^|)" + param + "=([^']*?&)";
+			//raw = StringUtils.removePattern(raw, regex);
+			Pattern p = Pattern.compile(regex);
+			Matcher m = p.matcher(raw);
+
+			while(m.find()){
+				log.info("Regex: '" + regex + "' matched: " + m.group());
+				raw = StringUtils.removePattern(raw, Pattern.quote(m.group())); //awesome
+			}
 		}
+
+		//in case garbage param ends up as very LAST thing
+		if(StringUtils2.stringContainsItemFromList(raw, garbage)){
+			raw = raw.substring(0, raw.lastIndexOf('&'));
+		}
+
+		log.info("raw after:" + raw);
 
 		//double amps or commas might occur. can't have this throw off the parsing later
 		raw = raw.replaceAll("&{2}", "&");
