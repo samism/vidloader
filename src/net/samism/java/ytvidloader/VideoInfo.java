@@ -221,7 +221,7 @@ public class VideoInfo {
 		}
 
 		//in case garbage param ends up as very LAST thing
-		if(StringUtils2.stringContainsItemFromList(raw, garbage)){
+		if(StringUtils2.containsItemFromList(raw, garbage)){
 			raw = raw.substring(0, raw.lastIndexOf('&'));
 		}
 
