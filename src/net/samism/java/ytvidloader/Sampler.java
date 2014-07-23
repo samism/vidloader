@@ -12,9 +12,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +43,7 @@ public class Sampler {
 //		}
 
 		//StringUtils2.printStringArray(big_list.toArray(new String[big_list.size()]), "");
-		StringUtils2.printAsStringArray(big_list.toArray(new String[big_list.size()]));
+		StringUtils2.printAsJavaStringArray(big_list.toArray(new String[big_list.size()]));
 
 		System.out.println("length: " + big_list.size() + " params total.");
 	}
